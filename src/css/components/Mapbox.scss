@@ -1,0 +1,15 @@
+.mapbox {
+    background: #2E2D2C;
+	color: white;
+	float: left;
+	height: 100%;
+	position: relative;
+	width: 100%;
+
+	.mapboxgl-control-container {
+		.mapboxgl-ctrl-bottom-left,
+		.mapboxgl-ctrl-bottom-right {
+			display: none;
+		}
+	}
+}

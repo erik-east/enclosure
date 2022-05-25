@@ -1,0 +1,26 @@
+html,
+body {
+	height: 100%;
+	margin: 0;
+
+	#root-container {
+		height: inherit;
+		overflow-y: hidden !important;
+	}
+
+	.bold {
+		font-weight: 600;
+	}
+
+	.page-content {
+		margin: 0 auto;
+		margin-top: to-rem(20px);
+		width: to-rem(1140px);
+	}
+
+	.view {
+		float: right;
+		height: 100%;
+		width: 100%;
+	}
+}
