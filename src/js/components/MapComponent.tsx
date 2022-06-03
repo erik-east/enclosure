@@ -54,7 +54,20 @@ const MapComponent: React.FC = (): JSX.Element => {
 		console.log('firstPolygon:', firstPolygon);
 		const intersection = firstPolygon && turf.intersect(firstPolygon, texasPolygon);
 
+		if (intersection === null) {
+			const deadWrong = texasPolygon;
+
+			deadWrong.properties = { class_id: 2 };
+			drawRef?.deleteAll().add(deadWrong);
+		}
+
 		if (intersection) {
+			const outlierArea = turf.difference(firstPolygon, intersection);
+
+			outlierArea.properties = { class_id: 3 };
+
+			drawRef?.deleteAll().add(outlierArea);
+
 			intersection.properties = { class_id: 1 };
 			drawRef?.add(intersection);
 
