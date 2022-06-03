@@ -50,10 +50,12 @@ const MapComponent: React.FC = (): JSX.Element => {
 	React.useEffect(() => {
 		console.log('all polygons:', polygons);
 		const firstPolygon: any = Object.values(polygons)[ 0 ];
+
 		console.log('firstPolygon:', firstPolygon);
 		const intersection = firstPolygon && turf.intersect(firstPolygon, texasPolygon);
 
 		if (intersection) {
+			intersection.properties = { class_id: 1 };
 			drawRef?.add(intersection);
 
 			const intersectionArea = turf.convertArea(turf.area(intersection), 'meters', 'miles');
@@ -74,32 +76,35 @@ const MapComponent: React.FC = (): JSX.Element => {
 			console.log('base multiplier:', baseMultiplier.toFixed(2));
 			console.log('penalty multiplier:', penaltyMultiplier.toFixed(2));
 			console.log('final score:', finalScore.toFixed(0), '/ 50000');
+
+			const difference = turf.difference(texasPolygon, intersection);
+
+			if (difference) {
+				difference.properties = { class_id: 2 };
+				drawRef?.add(difference);
+			}
 		}
 	}, [ polygons ]);
 
-	const render = (): JSX.Element => {
-		return (
-			<div className='mapbox'>
-				<Map
-					{ ...viewState }
-					dragRotate={ false }
-					id='mapbox'
-					mapboxAccessToken={ MAPBOX_ACCESS_TOKEN }
-					mapStyle={ MAPBOX_STYLE }
-					onMove={ (e) => setViewState(e.viewState) }
-					ref={ mapRef }
-					renderWorldCopies>
-					<DrawingTools
-						initialPolygon={ texasPolygon }
-						onCreate={ onDrawUpdate }
-						onDelete={ onDrawDelete }
-						onUpdate={ onDrawUpdate } />
-				</Map>
-			</div>
-		);
-	};
-
-	return render();
+	return (
+		<div className='mapbox'>
+			<Map
+				{ ...viewState }
+				dragRotate={ false }
+				id='mapbox'
+				mapboxAccessToken={ MAPBOX_ACCESS_TOKEN }
+				mapStyle={ MAPBOX_STYLE }
+				onMove={ (e) => setViewState(e.viewState) }
+				ref={ mapRef }
+				renderWorldCopies>
+				<DrawingTools
+					initialPolygon={ texasPolygon }
+					onCreate={ onDrawUpdate }
+					onDelete={ onDrawDelete }
+					onUpdate={ onDrawUpdate } />
+			</Map>
+		</div>
+	);
 };
 
 export default MapComponent;

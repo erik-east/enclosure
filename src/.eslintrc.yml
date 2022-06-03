@@ -129,6 +129,31 @@ rules:
   "@typescript-eslint/object-curly-spacing": 
     - error
     - always
+  "@typescript-eslint/padding-line-between-statements":
+    - error
+    - blankLine: always
+      prev: "*"
+      next: "return"
+    - blankLine: always
+      prev: "*"
+      next: "export"
+    - blankLine: always
+      prev: 
+      - "block-like"
+      - "const"
+      - "let"
+      - "var"
+      next: "*"
+    - blankLine: any
+      prev: 
+      - "block-like"
+      - "const"
+      - "let"
+      - "var"
+      next: 
+      - "const"
+      - "let"
+      - "var"
   "@typescript-eslint/prefer-as-const": error
   "@typescript-eslint/prefer-namespace-keyword": error
   "@typescript-eslint/prefer-readonly": error
@@ -339,14 +364,7 @@ rules:
   one-var-declaration-per-line: "off"
   operator-linebreak: "off"
   padded-blocks: "off"
-  padding-line-between-statements:
-    - error
-    - blankLine: always
-      prev: "*"
-      next: "return"
-    - blankLine: always
-      prev: "*"
-      next: "export"
+  padding-line-between-statements: "off"
   prefer-const: error
   prefer-destructuring:
     - warn
