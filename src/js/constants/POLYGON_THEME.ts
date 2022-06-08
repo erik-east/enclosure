@@ -5,7 +5,7 @@ export const POLYGON_THEME = [
 		paint: {
 			'fill-color': [
 				'case',
-				[ '==', [ 'get', 'user_class_id' ], 1 ], '#00FF00',
+				[ '==', [ 'get', 'user_class_id' ], 1 ], '#0BDE00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#FF0000',
 				[ '==', [ 'get', 'user_class_id' ], 3 ], '#AB7343',
 				'#3bb2d0'
@@ -14,7 +14,7 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], 0.75,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 0.75,
-				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.6,
+				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.7,
 				0.1
 			],
 			'fill-outline-color': '#3bb2d0'
@@ -54,12 +54,18 @@ export const POLYGON_THEME = [
 		paint: {
 			'line-color': [
 				'case',
-				[ '==', [ 'get', 'user_class_id' ], 1 ], '#03AD36',
+				[ '==', [ 'get', 'user_class_id' ], 1 ], '#045D00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#B60000',
 				[ '==', [ 'get', 'user_class_id' ], 3 ], '#AB7343',
 				'#3bb2d0'
 			],
-			'line-width': 2
+			'line-width': [
+				'case',
+				[ '==', [ 'get', 'user_class_id' ], 1 ], 1,
+				[ '==', [ 'get', 'user_class_id' ], 2 ], 2,
+				[ '==', [ 'get', 'user_class_id' ], 3 ], 1,
+				2
+			]
 		},
 		type: 'line'
 	},

@@ -107,6 +107,7 @@ const MapComponent: React.FC = (): JSX.Element => {
 				id='mapbox'
 				mapboxAccessToken={ MAPBOX_ACCESS_TOKEN }
 				mapStyle={ MAPBOX_STYLE }
+				minZoom={ 3 }
 				onMove={ (e) => setViewState(e.viewState) }
 				ref={ mapRef }
 				renderWorldCopies>

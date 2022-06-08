@@ -1,0 +1,46 @@
+.navbar {
+    align-items: center;
+    background-color:#045D00;
+    display: flex;
+    height: 57px;
+    justify-content: space-between;
+
+    .links {
+        display: flex;
+        height: 100%;
+        padding-right: 4px;
+
+        a {
+            align-items: center;
+            color: #F2E5D9;
+            display: flex;
+            font-size: 18px;
+            font-weight: bold;
+            padding-right: 28px;
+            text-decoration: none;
+    
+            &.active {
+                color: #92C7E1;
+                cursor: default;
+                text-decoration: underline;
+            }
+
+            &:not(.active):hover {
+                color: #63E5FF;
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .logo {
+        color: #0BDE00;
+        font-family: fantasy;
+        font-size: 28px;
+        font-weight: bold;
+        height: 100%;
+        justify-content: flex-start;
+        padding-left: 32px;
+        position: relative;
+        top: 12px;
+    }
+}
