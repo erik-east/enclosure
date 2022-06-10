@@ -316,9 +316,7 @@ rules:
   no-null/no-null: "off"
   no-obj-calls: error
   no-octal: error
-  no-plusplus: 
-   - error
-   - allowForLoopAfterthoughts: false
+  no-plusplus: "off"
   no-prototype-builtins: error
   no-redeclare: error
   no-regex-spaces: error

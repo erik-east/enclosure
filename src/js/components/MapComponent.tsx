@@ -4,7 +4,8 @@ import * as turf from '@turf/turf';
 import * as React from 'react';
 import { Map } from 'react-map-gl';
 
-import { BOUNDARIES } from '../constants/BOUNDARIES';
+import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
+import { US_CENSUS_STATES } from '../constants/US_CENSUS_STATES';
 
 import DrawingTools, { drawRef }  from './DrawingTools';
 
@@ -12,16 +13,23 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZWVya2trIiwiYSI6ImNsM20zYTdqYzAwcDQzZ211MjlvdnlwaTUifQ.8jCiZU-Ii4F5GY6GpOBW_g';
 const MAPBOX_STYLE = 'mapbox://styles/mapbox/satellite-v9';
-const texasPolygon = turf.polygon(BOUNDARIES.TEXAS);
+const multiPolygonTexas = turf.multiPolygon(MULTI_POLYGON_STATES.TEXAS);
 
 const MapComponent: React.FC = (): JSX.Element => {
 	const mapRef = React.useRef();
 	const [ viewState, setViewState ] = React.useState({
-		latitude: 32,
+		latitude: 36,
 		longitude: -98,
-		zoom: 4
+		zoom: 3.5
 	});
 	const [ polygons, setPolygons ] = React.useState({});
+	const [ targetState, setTargetState ] = React.useState('');
+	const [ targetPolygon, setTargetPolygon ] = React.useState();
+	const [ userPolygon, setUserPolygon ] = React.useState();
+
+	const singlePolygonStates = Object.entries(US_CENSUS_STATES);
+	const multiPolygonStates = Object.entries(MULTI_POLYGON_STATES);
+	const stateCount = 49; // Missing one
 
 	const onDrawDelete = React.useCallback((draw) => {
 		setPolygons((currentFeatures) => {
@@ -48,21 +56,63 @@ const MapComponent: React.FC = (): JSX.Element => {
 	}, [ ]);
 
 	React.useEffect(() => {
-		console.log('all polygons:', polygons);
-		const firstPolygon: any = Object.values(polygons)[ 0 ];
+		const randomStateIndex = Math.floor(Math.random() * stateCount);
 
-		console.log('firstPolygon:', firstPolygon);
-		const intersection = firstPolygon && turf.intersect(firstPolygon, texasPolygon);
+		// TODO: Exclude extra small states such as D.C)
+
+		for (let i = 0; i < singlePolygonStates.length; i++) {
+			if (i === randomStateIndex) {
+				const [ key, value ] = singlePolygonStates[ i ];
+				const singlePolygon: any = turf.polygon(value);
+
+				setTargetPolygon(singlePolygon);
+				setTargetState(key.toLowerCase().replace(/_/g, ' '));
+			}
+		}
+
+		for (let i = singlePolygonStates.length; i < stateCount; i++) {
+			if (i === randomStateIndex) {
+				const [ key, value ] = multiPolygonStates[ i - singlePolygonStates.length ];
+				const multiPolygon: any = turf.multiPolygon(value);
+
+				setTargetPolygon(multiPolygon);
+				setTargetState(key.toLowerCase().replace(/_/g, ' '));
+			}
+		}
+	}, [ ]);
+
+	React.useEffect(() => {
+		if (polygons && Object.keys(polygons).length === 1) {
+			console.log(polygons);
+			// eslint-disable-next-line prefer-destructuring
+			const firstPolygon: any = Object.values(polygons)[ 0 ];
+
+			setUserPolygon(firstPolygon);
+		}
+	}, [ polygons ]);
+
+	React.useEffect(() => {
+		console.log('all polygons:', polygons);
+
+		if (!userPolygon) {
+			return;
+		}
+
+		console.log('userPolygon:', userPolygon);
+		console.log('targetPolygon:', targetPolygon);
+		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
+
+		console.log(intersection);
 
 		if (intersection === null) {
-			const deadWrong = texasPolygon;
+			const deadWrong: any = targetPolygon;
 
 			deadWrong.properties = { class_id: 2 };
 			drawRef?.deleteAll().add(deadWrong);
 		}
 
 		if (intersection) {
-			const outlierArea = turf.difference(firstPolygon, intersection);
+			const outlierArea = turf.difference(userPolygon, intersection);
 
 			outlierArea.properties = { class_id: 3 };
 
@@ -72,8 +122,8 @@ const MapComponent: React.FC = (): JSX.Element => {
 			drawRef?.add(intersection);
 
 			const intersectionArea = turf.convertArea(turf.area(intersection), 'meters', 'miles');
-			const targetArea = turf.convertArea(turf.area(texasPolygon), 'meters', 'miles');
-			const drawnArea = turf.convertArea(turf.area(firstPolygon), 'meters', 'miles');
+			const targetArea = turf.convertArea(turf.area(targetPolygon), 'meters', 'miles');
+			const drawnArea = turf.convertArea(turf.area(userPolygon), 'meters', 'miles');
 
 			console.log('area of intersection:', intersectionArea);
 			console.log('total area of Texas:', targetArea);
@@ -90,14 +140,14 @@ const MapComponent: React.FC = (): JSX.Element => {
 			console.log('penalty multiplier:', penaltyMultiplier.toFixed(2));
 			console.log('final score:', finalScore.toFixed(0), '/ 50000');
 
-			const difference = turf.difference(texasPolygon, intersection);
+			const difference = turf.difference(targetPolygon, intersection);
 
 			if (difference) {
 				difference.properties = { class_id: 2 };
 				drawRef?.add(difference);
 			}
 		}
-	}, [ polygons ]);
+	}, [ userPolygon ]);
 
 	return (
 		<div className='mapbox'>
@@ -107,15 +157,16 @@ const MapComponent: React.FC = (): JSX.Element => {
 				id='mapbox'
 				mapboxAccessToken={ MAPBOX_ACCESS_TOKEN }
 				mapStyle={ MAPBOX_STYLE }
-				minZoom={ 3 }
+				minZoom={ 2.5 }
 				onMove={ (e) => setViewState(e.viewState) }
 				ref={ mapRef }
 				renderWorldCopies>
 				<DrawingTools
-					initialPolygon={ texasPolygon }
+					initialPolygon={ multiPolygonTexas }
 					onCreate={ onDrawUpdate }
 					onDelete={ onDrawDelete }
 					onUpdate={ onDrawUpdate } />
+				<div style={ { fontSize: '24px', left: '49%', position: 'absolute', textTransform: 'capitalize' } }>{ targetState }</div>
 			</Map>
 		</div>
 	);
