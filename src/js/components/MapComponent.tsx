@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Map } from 'react-map-gl';
 
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
-import { US_CENSUS_STATES } from '../constants/US_CENSUS_STATES';
+import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
 
 import DrawingTools, { drawRef }  from './DrawingTools';
 
@@ -22,14 +22,16 @@ const MapComponent: React.FC = (): JSX.Element => {
 		longitude: -98,
 		zoom: 3.5
 	});
+	const [ finalScore, setFinalScore ] = React.useState(-1);
+	const [ isDrawing, setIsDrawing ] = React.useState(false);
 	const [ polygons, setPolygons ] = React.useState({});
 	const [ targetState, setTargetState ] = React.useState('');
 	const [ targetPolygon, setTargetPolygon ] = React.useState();
 	const [ userPolygon, setUserPolygon ] = React.useState();
 
-	const singlePolygonStates = Object.entries(US_CENSUS_STATES);
+	const singlePolygonStates = Object.entries(SINGLE_POLYGON_STATES);
 	const multiPolygonStates = Object.entries(MULTI_POLYGON_STATES);
-	const stateCount = 49; // Missing one
+	const statesCount = singlePolygonStates.length + multiPolygonStates.length;
 
 	const onDrawDelete = React.useCallback((draw) => {
 		setPolygons((currentFeatures) => {
@@ -43,6 +45,11 @@ const MapComponent: React.FC = (): JSX.Element => {
 		});
 	}, [ ]);
 
+	const onDrawStart = () => {
+		drawRef?.changeMode('draw_polygon');
+		setIsDrawing(true);
+	};
+
 	const onDrawUpdate = React.useCallback((draw) => {
 		setPolygons((currentFeatures) => {
 			const newFeatures = { ...currentFeatures };
@@ -53,12 +60,12 @@ const MapComponent: React.FC = (): JSX.Element => {
 
 			return newFeatures;
 		});
+
+		setIsDrawing(false);
 	}, [ ]);
 
 	React.useEffect(() => {
-		const randomStateIndex = Math.floor(Math.random() * stateCount);
-
-		// TODO: Exclude extra small states such as D.C)
+		const randomStateIndex = Math.floor(Math.random() * statesCount);
 
 		for (let i = 0; i < singlePolygonStates.length; i++) {
 			if (i === randomStateIndex) {
@@ -70,7 +77,7 @@ const MapComponent: React.FC = (): JSX.Element => {
 			}
 		}
 
-		for (let i = singlePolygonStates.length; i < stateCount; i++) {
+		for (let i = singlePolygonStates.length; i < statesCount; i++) {
 			if (i === randomStateIndex) {
 				const [ key, value ] = multiPolygonStates[ i - singlePolygonStates.length ];
 				const multiPolygon: any = turf.multiPolygon(value);
@@ -136,6 +143,8 @@ const MapComponent: React.FC = (): JSX.Element => {
 			const penaltyMultiplier = drawnArea > (targetArea * 1.05) ? drawAccuracy * 0.8 : drawAccuracy;
 			const finalScore = maximumScore * baseMultiplier * penaltyMultiplier;
 
+			setFinalScore(Number(finalScore.toFixed(0)));
+
 			console.log('base multiplier:', baseMultiplier.toFixed(2));
 			console.log('penalty multiplier:', penaltyMultiplier.toFixed(2));
 			console.log('final score:', finalScore.toFixed(0), '/ 50000');
@@ -166,7 +175,18 @@ const MapComponent: React.FC = (): JSX.Element => {
 					onCreate={ onDrawUpdate }
 					onDelete={ onDrawDelete }
 					onUpdate={ onDrawUpdate } />
-				<div style={ { fontSize: '24px', left: '49%', position: 'absolute', textTransform: 'capitalize' } }>{ targetState }</div>
+				<div className='target-state'>{ targetState }</div>
+
+				{
+					userPolygon && !isDrawing && <>
+						<div className='final-score'>{ finalScore } / 50000</div>
+						<button className='next' onClick={ () => console.log('Next game starts') }>Keep Drawing!</button>
+					</>
+				}
+
+				{
+					!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Start Drawing!</button>
+				}
 			</Map>
 		</div>
 	);

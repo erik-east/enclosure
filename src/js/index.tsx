@@ -4,7 +4,7 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
-import GeoReckoning from './components/GeoReckoning';
+import Enclosure from './components/Enclosure';
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 const container = document.getElementById('root-container');
@@ -13,6 +13,6 @@ const root = createRoot(container!);
 
 root.render(
 	<BrowserRouter>
-		<GeoReckoning />
+		<Enclosure />
 	</BrowserRouter>
 );

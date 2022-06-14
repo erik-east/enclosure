@@ -5,9 +5,9 @@ import Leaderboards from './Leaderboards';
 import MapComponent from './MapComponent';
 import Navbar from './Navbar';
 
-const GeoReckoning: React.FC = (): JSX.Element => {
+const Enclosure: React.FC = (): JSX.Element => {
 	return (
-		<div id='geo-reckoning-container'>
+		<div id='enclosure-container'>
 			<Navbar />
 
 			<div className="container">
@@ -21,4 +21,4 @@ const GeoReckoning: React.FC = (): JSX.Element => {
 	);
 };
 
-export default GeoReckoning;
+export default Enclosure;

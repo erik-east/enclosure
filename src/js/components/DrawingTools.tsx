@@ -50,13 +50,12 @@ const DrawControl: React.FC<DrawControlProps> = (props: DrawControlProps): JSX.E
 
 const DrawingTools: React.FC<IDrawingTools> = (props: IDrawingTools): JSX.Element => {
 	React.useEffect(() => {
-		// console.log(props.initialPolygon);
 		// drawRef?.add(props.initialPolygon);
 	}, [ ]);
 
 	return (
 		<DrawControl
-			controls={ { polygon: true, trash: true } }
+			controls={ { trash: true } }
 			displayControlsDefault={ false }
 			onCreate={ props.onCreate }
 			onDelete={ props.onDelete }
