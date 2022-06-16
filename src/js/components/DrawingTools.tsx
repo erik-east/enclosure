@@ -10,7 +10,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 export let drawRef = null;
 
 interface IDrawingTools {
-	initialPolygon: any;
+	initialPolygon?: any;
 	onCreate: (e: { features: Array<object> }) => void;
 	onDelete: (e: { features: Array<object> }) => void;
 	onUpdate: (e: { action: string; features: Array<object> }) => void;
