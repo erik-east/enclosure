@@ -1,0 +1,24 @@
+.polygon-game-selection {
+	align-items: center;
+	display: flex;
+	height: 100%;
+	margin: auto;
+	justify-content: center;
+	width: 40%;
+
+	.games {
+		background-color: #005066;
+		border-radius: 35px;
+		color: #E1EBF1;
+		font-size: 24px;
+		font-weight: bold;
+		padding: 65px;
+		position: relative;
+
+		> a {
+			color: steelblue;
+			display: list-item;
+			padding-top: 20px;
+		}
+	}
+}

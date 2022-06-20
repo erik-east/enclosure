@@ -7,14 +7,14 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#0BDE00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#FF0000',
-				[ '==', [ 'get', 'user_class_id' ], 3 ], '#AB7343',
+				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
 				'#3bb2d0'
 			],
 			'fill-opacity': [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], 0.75,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 0.75,
-				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.7,
+				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.6,
 				0.1
 			],
 			'fill-outline-color': '#3bb2d0'
@@ -56,7 +56,7 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#045D00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#B60000',
-				[ '==', [ 'get', 'user_class_id' ], 3 ], '#AB7343',
+				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
 				'#3bb2d0'
 			],
 			'line-width': [
