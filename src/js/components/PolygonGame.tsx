@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as turf from '@turf/turf';
 import * as React from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
@@ -12,18 +12,24 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const singlePolygonStates = Object.entries(SINGLE_POLYGON_STATES);
 const multiPolygonStates = Object.entries(MULTI_POLYGON_STATES);
+const maximumScore = 9999;
 
 const PolygonGame: React.FC = (): JSX.Element => {
 	const [ finalScore, setFinalScore ] = React.useState(-1);
+	const [ totalFinalScore, setTotalFinalScore ] = React.useState(0);
+	const [ didGameEnd, setDidGameEnd ] = React.useState(false);
+	const [ showResults, setShowResults ] = React.useState(false);
 	const [ isDrawing, setIsDrawing ] = React.useState(false);
 	const [ polygons, setPolygons ] = React.useState({});
-	const [ targetCount, setTargetCount ] = React.useState(0);
+	const [ targetCount, setTargetCount ] = React.useState(1);
 	const [ targetState, setTargetState ] = React.useState('');
 	const [ targetPolygon, setTargetPolygon ] = React.useState();
 	const [ userPolygon, setUserPolygon ] = React.useState();
-	const { id } = useParams();
+	const navigate = useNavigate();
+	const { content, id: totalTargetCount } = useParams();
 
 	const incrementTargetCount = () => setTargetCount(targetCount + 1);
+	const incrementTotalFinalScore = (finalScore) => setTotalFinalScore(totalFinalScore + Number(finalScore));
 
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
@@ -50,7 +56,6 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			const intersectionArea = turf.convertArea(turf.area(intersection), 'meters', 'miles');
 			const targetArea = turf.convertArea(turf.area(targetPolygon), 'meters', 'miles');
 			const drawnArea = turf.convertArea(turf.area(userPolygon), 'meters', 'miles');
-			const maximumScore = 50000;
 			const baseMultiplier = intersectionArea / targetArea;
 			const drawAccuracy = 1 - ((drawnArea - intersectionArea) / drawnArea);
 			// Penalty multiplier for draw accuracy is less forgiving if you overshoot more than 5 percent of target area
@@ -58,10 +63,11 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			const finalScore = maximumScore * baseMultiplier * penaltyMultiplier;
 
 			setFinalScore(Number(finalScore.toFixed(0)));
+			incrementTotalFinalScore(Number(finalScore.toFixed(0)));
 
+			// TODO: Add these to the score sheet
 			console.log('base multiplier:', baseMultiplier.toFixed(2));
 			console.log('penalty multiplier:', penaltyMultiplier.toFixed(2));
-			console.log('final score:', finalScore.toFixed(0), '/ 50000');
 
 			const difference = turf.difference(targetPolygon, intersection);
 
@@ -133,6 +139,19 @@ const PolygonGame: React.FC = (): JSX.Element => {
 		}
 	};
 
+	const restartGame = () => {
+		resetTarget();
+		setTotalFinalScore(0);
+		setDidGameEnd(false);
+		setShowResults(false);
+		setIsDrawing(false);
+		setTargetCount(1);
+		setTargetState('');
+		setTargetPolygon(undefined);
+
+		prepareNewTarget();
+	};
+
 	const resetTarget = () => {
 		drawRef?.deleteAll();
 		setFinalScore(-1);
@@ -140,11 +159,45 @@ const PolygonGame: React.FC = (): JSX.Element => {
 		setUserPolygon(undefined);
 	};
 
+	const renderMenu = () => {
+		if (showResults) {
+			return (
+				<div className='menu'>
+					<div className='title'>Final Score</div>
+					<div className='total-score'>{ totalFinalScore } / { maximumScore * Number(totalTargetCount) } </div>
+				</div>
+			);
+		}
+
+		return (
+			<div className='menu'>
+				<div className='current-state'>
+					<span>{ targetState }</span>
+					<span className='count'>{ targetCount } / { totalTargetCount }</span>
+				</div>
+
+				{ finalScore >= 0 && <div className='final-score'><span>Score:</span> { finalScore } / { maximumScore }</div> }
+			</div>
+		);
+	};
+
 	React.useEffect(() => {
-		incrementTargetCount();
+		if (!content || content !== 'us-states') {
+			navigate('game');
+		}
+
+		if ((!totalTargetCount || Number(totalTargetCount) < 1 || Number(totalTargetCount) > 50)) {
+			navigate(`game/${content}`);
+		}
+
 		prepareNewTarget();
-		console.log(id);
 	}, [ ]);
+
+	React.useEffect(() => {
+		if (userPolygon && targetCount === Number(totalTargetCount)) { // TODO: Change this when user can add multiple polygons
+			setDidGameEnd(true);
+		}
+	}, [ finalScore ]);
 
 	React.useEffect(() => {
 		if (polygons && Object.keys(polygons).length === 1) {
@@ -171,25 +224,33 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	}, [ targetCount ]);
 
 	return (
-		<>
+		<div className='polygon-game'>
 			<DrawingTools
 				onCreate={ onDrawUpdate }
 				onDelete={ onDrawDelete }
 				onUpdate={ onDrawUpdate } />
 
-			<div className='target-state'>{ targetState }</div>
+			{ renderMenu() }
 
-			{
-				finalScore >= 0 && !isDrawing && <>
-					<div className='final-score'>{ finalScore } / 50000</div>
+			<div className='buttons'>
+				{
+					!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Start Drawing!</button>
+				}
+
+				{
+					finalScore >= 0 && !isDrawing && !didGameEnd &&
 					<button className='next' onClick={ incrementTargetCount }>Keep Drawing!</button>
-				</>
-			}
+				}
 
-			{
-				!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Start Drawing!</button>
-			}
-		</>
+				{
+					didGameEnd && !showResults && <button className='show-results' onClick={ () => setShowResults(true) }>Show Results</button>
+				}
+
+				{
+					showResults && <button className='restart' onClick={ () => restartGame() }>Restart Game</button>
+				}
+			</div>
+		</div>
 	);
 };
 

@@ -3,10 +3,10 @@ import { NavLink } from 'react-router-dom';
 
 const GameSelection: React.FC = (): JSX.Element => {
 	return (
-		<div className='polygon-game-selection'>
-			<div className='games'>
-				<span>Game Types</span>
-				<NavLink to='polygon'>The OG (Polygon)</NavLink>
+		<div className='polygon-game'>
+			<div className='selection'>
+				<div className='title'>Game Types</div>
+				<NavLink to='polygon'>The OG - Polygon</NavLink>
 			</div>
 		</div>
 	);

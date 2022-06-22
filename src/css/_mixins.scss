@@ -1,0 +1,9 @@
+@mixin sci-fi-box($backgroundColor, $fontSize, $padding) {
+	background-color: $backgroundColor;
+	border: 1px solid #78CCE2;
+	border-radius: 32px;
+	color: #E4EFF0;
+	font-size: $fontSize;
+	padding: $padding;
+	position: relative;
+}

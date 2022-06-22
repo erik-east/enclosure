@@ -6,42 +6,6 @@
 	position: relative;
 	width: 100%;
 
-	.final-score {
-		font-size: 28px;
-		left: 48%;
-		position: absolute;
-		top: 12%;
-	}
-
-	.next,
-	.start {
-		background-color: #045D00;
-		border-radius: 35px;
-		border-style: dashed;
-		border-color: #92C7E1;
-		color: #F2E5D9;
-		cursor: pointer;
-		font-size: 24px;
-		font-weight: bold;
-		left: calc(50% - 100px);
-		padding: 25px 35px;
-		position: absolute;
-		top: calc(50% - 40px);
-	}
-
-	.next {
-		padding: 25px 15px;
-		top: 20%;
-	}
-
-	.target-state {
-		font-size: 28px;
-		left: 48%;
-		position: absolute;
-		top: 5%;
-		text-transform: capitalize;
-	}
-
 	.mapboxgl-control-container {
 		.mapboxgl-ctrl-bottom-left,
 		.mapboxgl-ctrl-bottom-right {

@@ -1,7 +1,8 @@
+@import '_mixins.scss';
 @import '_global.scss';
 
 @import './components/Enclosure.scss';
 @import './components/Leaderboards.scss';
 @import './components/Mapbox.scss';
 @import './components/Navbar.scss';
-@import './components/PolygonGameSelection.scss';
+@import './components/PolygonGame.scss';

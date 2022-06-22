@@ -1,0 +1,94 @@
+.polygon-game {
+	align-items: center;
+	display: grid;
+	grid-template-columns: [col1-start] 25% [col1-end col2-start] 50% [col2-end col3-start] 25% [col3-end];
+	grid-template-rows: [row1-start] 30% [row1-end row2-start] 40% [row2-end row3-start] 30% [row3-end];
+	height: 100%;
+
+	.buttons {
+		position: relative;
+		grid-column-start: col2-start;
+		grid-column-end: col3-start;
+		grid-row-start: row2-start;
+		grid-row-end: row3-start;
+		justify-self: center;
+
+		.next,
+		.restart,
+		.show-results,
+		.start {
+			background-color: #045D00BB;
+			border-radius: 35px;
+			border: 1px dashed #78CCE2;
+			color: #E4EFF0;
+			cursor: pointer;
+			font-size: 24px;
+			font-weight: bold;
+			padding: 25px;
+		}
+	}
+
+	.menu {
+		@include sci-fi-box(#005066AA, 28px, 28px);
+
+		grid-column-start: col2-start;
+		grid-column-end: col3-start;
+		grid-row-start: row1-start;
+		grid-row-end: row2-start;
+		justify-self: center;
+		position: relative;
+		text-transform: capitalize;
+
+		.current-state {
+			text-align: center;
+
+			.count {
+				color: #92C7E1;
+				font-size: 30px;
+				margin-left: 24px;
+			}
+		}
+
+		.final-score,
+		.total-score {
+			font-size: 30px;
+			padding-top: 24px;
+			text-align: center;
+
+			> span {
+				font-size: 26px;
+			}
+		}
+
+		.total-score {
+			color: #92C7E1;
+			font-size: 36px;
+			margin-bottom: 10px;
+		}
+	}
+
+	.selection {
+		@include sci-fi-box(#005066DD, 24px, 60px);
+
+		grid-column-start: col2-start;
+		grid-column-end: col3-start;
+		grid-row-start: row2-start;
+		grid-row-end: row3-start;
+		justify-self: center;
+
+		> a {
+			color: #94C7EB;
+			display: block;
+			padding-top: 22px;
+			text-align: center;
+			text-decoration: none;
+		}
+	}
+
+	.title {
+		font-size: 26px;
+		font-weight: bold;
+		margin-bottom: 8px;
+		text-align: center;
+	}
+}
