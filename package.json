@@ -25,6 +25,7 @@
 		"fork-ts-checker-webpack-plugin": "^7.2.11",
 		"html-webpack-plugin": "^5.5.0",
 		"mapbox-gl": "^2.8.2",
+		"mapbox-gl-draw-freehand-mode": "^2.1.0",
 		"process": "^0.11.10",
 		"react": "^18.1.0",
 		"react-dom": "^18.1.0",

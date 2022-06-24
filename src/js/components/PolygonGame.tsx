@@ -219,7 +219,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 		if (targetCount > 1) {
 			resetTarget();
 			prepareNewTarget();
-			onDrawStart();
+			// onDrawStart();
 		}
 	}, [ targetCount ]);
 
@@ -234,12 +234,12 @@ const PolygonGame: React.FC = (): JSX.Element => {
 
 			<div className='buttons'>
 				{
-					!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Start Drawing!</button>
+					!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Draw</button>
 				}
 
 				{
 					finalScore >= 0 && !isDrawing && !didGameEnd &&
-					<button className='next' onClick={ incrementTargetCount }>Keep Drawing!</button>
+					<button className='next' onClick={ incrementTargetCount }>Next</button>
 				}
 
 				{
