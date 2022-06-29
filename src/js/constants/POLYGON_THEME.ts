@@ -8,6 +8,7 @@ export const POLYGON_THEME = [
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#0BDE00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#FF0000',
 				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
+				[ '==', [ 'get', 'user_class_id' ], 4 ], '#949494',
 				'#3bb2d0'
 			],
 			'fill-opacity': [
@@ -15,6 +16,7 @@ export const POLYGON_THEME = [
 				[ '==', [ 'get', 'user_class_id' ], 1 ], 0.75,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 0.75,
 				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.6,
+				[ '==', [ 'get', 'user_class_id' ], 4 ], 0.9,
 				0.1
 			],
 			'fill-outline-color': '#3bb2d0'
@@ -57,6 +59,7 @@ export const POLYGON_THEME = [
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#045D00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#B60000',
 				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
+				[ '==', [ 'get', 'user_class_id' ], 4 ], '#949494',
 				'#3bb2d0'
 			],
 			'line-width': [
@@ -64,6 +67,7 @@ export const POLYGON_THEME = [
 				[ '==', [ 'get', 'user_class_id' ], 1 ], 1,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 2,
 				[ '==', [ 'get', 'user_class_id' ], 3 ], 1,
+				[ '==', [ 'get', 'user_class_id' ], 4 ], 1,
 				2
 			]
 		},

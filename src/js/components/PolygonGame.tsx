@@ -5,14 +5,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
+import { initializePolygons, randomUniqueIndices } from '../lib/util';
 
 import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const singlePolygonStates = Object.entries(SINGLE_POLYGON_STATES);
-const multiPolygonStates = Object.entries(MULTI_POLYGON_STATES);
 const maximumScore = 9999;
+const clueMode = false;
+let statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
 
 const PolygonGame: React.FC = (): JSX.Element => {
 	const [ finalScore, setFinalScore ] = React.useState(-1);
@@ -25,11 +26,17 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	const [ targetState, setTargetState ] = React.useState('');
 	const [ targetPolygon, setTargetPolygon ] = React.useState();
 	const [ userPolygon, setUserPolygon ] = React.useState();
+	const [ cluePolygons, setCluePolygons ] = React.useState([]);
+	const [ pastPolygons, setPastPolygons ] = React.useState([]);
 	const navigate = useNavigate();
 	const { content, id: totalTargetCount } = useParams();
 
 	const incrementTargetCount = () => setTargetCount(targetCount + 1);
 	const incrementTotalFinalScore = (finalScore) => setTotalFinalScore(totalFinalScore + Number(finalScore));
+
+	const addPastPolygon = (pastPolygon: any) => {
+		setPastPolygons((array) => [ ...array, pastPolygon ]);
+	};
 
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
@@ -59,7 +66,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			const baseMultiplier = intersectionArea / targetArea;
 			const drawAccuracy = 1 - ((drawnArea - intersectionArea) / drawnArea);
 			// Penalty multiplier for draw accuracy is less forgiving if you overshoot more than 5 percent of target area
-			const penaltyMultiplier = drawnArea > (targetArea * 1.05) ? drawAccuracy * 0.8 : drawAccuracy;
+			const penaltyMultiplier = drawnArea > (targetArea * 1.05) ? drawAccuracy * 0.9 : drawAccuracy;
 			const finalScore = maximumScore * baseMultiplier * penaltyMultiplier;
 
 			setFinalScore(Number(finalScore.toFixed(0)));
@@ -110,36 +117,41 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	}, [ ]);
 
 	const prepareNewTarget = () => {
-		const statesCount = singlePolygonStates.length + multiPolygonStates.length;
-		const randomStateIndex = Math.floor(Math.random() * statesCount);
+		const statesCount = statePolygons.length;
+		const clueCount = statesCount < 10 ? Math.max(0, statesCount - 5) : 5;
+		const randomIndices = randomUniqueIndices(clueCount + 1, statesCount);
+		const [ randomStateIndex ] = randomIndices;
 
-		for (let i = 0; i < singlePolygonStates.length; i++) {
-			if (i === randomStateIndex) {
-				const [ key, value ] = singlePolygonStates[ i ];
-				const singlePolygon: any = turf.polygon(value);
+		if (clueMode) {
+			setCluePolygons(() => []);
 
-				setTargetPolygon(singlePolygon);
-				setTargetState(key.toLowerCase().replace(/_/g, ' '));
-				singlePolygonStates.splice(i, 1);
-				break;
-			}
+			randomIndices.delete(randomStateIndex);
+
+			const randomCluePolygons = statePolygons.filter((_, index) => randomIndices.has(index)).map(([ , polygonData ]) => polygonData);
+
+			setCluePolygons([ ...pastPolygons, ...randomCluePolygons ]);
 		}
 
-		for (let i = singlePolygonStates.length; i < statesCount; i++) {
+		for (let i = 0; i < statePolygons.length; i++) {
 			if (i === randomStateIndex) {
-				const multiPolygonIndex = i - singlePolygonStates.length;
-				const [ key, value ] = multiPolygonStates[ multiPolygonIndex ];
-				const multiPolygon: any = turf.multiPolygon(value);
+				const [ polygonName, polygonData ] = statePolygons[ i ];
 
-				setTargetPolygon(multiPolygon);
-				setTargetState(key.toLowerCase().replace(/_/g, ' '));
-				multiPolygonStates.splice(multiPolygonIndex, 1);
+				addPastPolygon(polygonData);
+				setTargetPolygon(polygonData);
+				setTargetState(polygonName);
+				statePolygons.splice(i, 1);
+
 				break;
 			}
 		}
 	};
 
 	const restartGame = () => {
+		// setPastPolygons(() => []);
+		setCluePolygons(() => []);
+
+		statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+
 		resetTarget();
 		setTotalFinalScore(0);
 		setDidGameEnd(false);
@@ -153,10 +165,13 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	};
 
 	const resetTarget = () => {
+		setUserPolygon(undefined);
+		setTargetPolygon(undefined);
+
 		drawRef?.deleteAll();
+
 		setFinalScore(-1);
 		setPolygons({});
-		setUserPolygon(undefined);
 	};
 
 	const renderMenu = () => {
@@ -208,6 +223,19 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	}, [ polygons ]);
 
 	React.useEffect(() => {
+		if (clueMode && cluePolygons && Object.keys(cluePolygons).length > 0) {
+			const cluePolygonsLength = Object.keys(cluePolygons).length;
+
+			for (let i = 0; i < cluePolygonsLength; i++) {
+				const cluePolygon = cluePolygons[ i ];
+
+				cluePolygon.properties = { class_id: 4 };
+				drawRef?.add(cluePolygon);
+			}
+		}
+	}, [ cluePolygons ]);
+
+	React.useEffect(() => {
 		if (!userPolygon) {
 			return;
 		}
@@ -219,7 +247,10 @@ const PolygonGame: React.FC = (): JSX.Element => {
 		if (targetCount > 1) {
 			resetTarget();
 			prepareNewTarget();
-			// onDrawStart();
+		}
+
+		if (targetCount === Number(totalTargetCount)) {
+			setPastPolygons(() => []);
 		}
 	}, [ targetCount ]);
 
