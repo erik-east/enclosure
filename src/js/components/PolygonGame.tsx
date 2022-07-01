@@ -12,10 +12,23 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const maximumScore = 9999;
-const clueMode = false;
 let statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
 
-const PolygonGame: React.FC = (): JSX.Element => {
+// TODO: Move to lib
+const determineClueCount = (gameId: string) => {
+	switch (gameId) {
+		case 'easy':
+			return 8;
+		case 'medium':
+			return 5;
+		case 'hard':
+			return 3;
+		default:
+			return 5;
+	}
+};
+
+const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JSX.Element => {
 	const [ finalScore, setFinalScore ] = React.useState(-1);
 	const [ totalFinalScore, setTotalFinalScore ] = React.useState(0);
 	const [ didGameEnd, setDidGameEnd ] = React.useState(false);
@@ -29,7 +42,9 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
 	const navigate = useNavigate();
-	const { content, id: totalTargetCount } = useParams();
+	const { content, id: gameId } = useParams();
+	const totalTargetCount = (gameId === 'easy' || gameId === 'medium' || gameId === 'hard') ? 50 : gameId;
+	const defaultClueCount = determineClueCount(gameId);
 
 	const incrementTargetCount = () => setTargetCount(targetCount + 1);
 	const incrementTotalFinalScore = (finalScore) => setTotalFinalScore(totalFinalScore + Number(finalScore));
@@ -40,6 +55,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
+		const pastPolygon: { difference: any; intersection: any; polygon: any } = { difference: null, intersection, polygon: targetPolygon };
 
 		if (intersection === null) {
 			const deadWrong: any = targetPolygon;
@@ -60,6 +76,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			intersection.properties = { class_id: 1 };
 			drawRef?.add(intersection);
 
+			// TODO: Move to lib
 			const intersectionArea = turf.convertArea(turf.area(intersection), 'meters', 'miles');
 			const targetArea = turf.convertArea(turf.area(targetPolygon), 'meters', 'miles');
 			const drawnArea = turf.convertArea(turf.area(userPolygon), 'meters', 'miles');
@@ -79,8 +96,52 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			const difference = turf.difference(targetPolygon, intersection);
 
 			if (difference) {
+				console.log('difference', difference);
 				difference.properties = { class_id: 2 };
 				drawRef?.add(difference);
+				pastPolygon.difference = difference;
+			}
+		}
+
+		addPastPolygon(pastPolygon);
+	};
+
+	const displayCluePolygons = () => {
+		if (cluePolygons && Object.keys(cluePolygons).length > 0) {
+			const cluePolygonsLength = Object.keys(cluePolygons).length;
+
+			for (let i = 0; i < cluePolygonsLength; i++) {
+				const cluePolygon = cluePolygons[ i ];
+
+				cluePolygon.properties = { class_id: 4 };
+				drawRef?.add(cluePolygon);
+			}
+		}
+	};
+
+	const displayPastPolygons = () => {
+		if (pastPolygons && Object.keys(pastPolygons).length > 0) {
+			const pastPolygonsLength = Object.keys(pastPolygons).length;
+
+			for (let i = 0; i < pastPolygonsLength; i++) {
+				const { difference, intersection, polygon } = pastPolygons[ i ];
+
+				if (intersection === null) {
+					polygon.properties = { class_id: 2 };
+					drawRef?.add(polygon);
+					continue;
+				}
+
+				if (difference) {
+					difference.properties = { class_id: 2 };
+					intersection.properties = { class_id: 1 };
+					drawRef?.add(difference);
+					drawRef?.add(intersection);
+				}
+				else {
+					polygon.properties = { class_id: 1 };
+					drawRef?.add(polygon);
+				}
 			}
 		}
 	};
@@ -118,7 +179,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 
 	const prepareNewTarget = () => {
 		const statesCount = statePolygons.length;
-		const clueCount = statesCount < 10 ? Math.max(0, statesCount - 5) : 5;
+		const clueCount = statesCount < defaultClueCount + 5 ? Math.max(0, statesCount - 5) : defaultClueCount;
 		const randomIndices = randomUniqueIndices(clueCount + 1, statesCount);
 		const [ randomStateIndex ] = randomIndices;
 
@@ -129,14 +190,13 @@ const PolygonGame: React.FC = (): JSX.Element => {
 
 			const randomCluePolygons = statePolygons.filter((_, index) => randomIndices.has(index)).map(([ , polygonData ]) => polygonData);
 
-			setCluePolygons([ ...pastPolygons, ...randomCluePolygons ]);
+			setCluePolygons(randomCluePolygons);
 		}
 
 		for (let i = 0; i < statePolygons.length; i++) {
 			if (i === randomStateIndex) {
 				const [ polygonName, polygonData ] = statePolygons[ i ];
 
-				addPastPolygon(polygonData);
 				setTargetPolygon(polygonData);
 				setTargetState(polygonName);
 				statePolygons.splice(i, 1);
@@ -147,7 +207,7 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	};
 
 	const restartGame = () => {
-		// setPastPolygons(() => []);
+		setPastPolygons(() => []);
 		setCluePolygons(() => []);
 
 		statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
@@ -160,7 +220,6 @@ const PolygonGame: React.FC = (): JSX.Element => {
 		setTargetCount(1);
 		setTargetState('');
 		setTargetPolygon(undefined);
-
 		prepareNewTarget();
 	};
 
@@ -223,19 +282,6 @@ const PolygonGame: React.FC = (): JSX.Element => {
 	}, [ polygons ]);
 
 	React.useEffect(() => {
-		if (clueMode && cluePolygons && Object.keys(cluePolygons).length > 0) {
-			const cluePolygonsLength = Object.keys(cluePolygons).length;
-
-			for (let i = 0; i < cluePolygonsLength; i++) {
-				const cluePolygon = cluePolygons[ i ];
-
-				cluePolygon.properties = { class_id: 4 };
-				drawRef?.add(cluePolygon);
-			}
-		}
-	}, [ cluePolygons ]);
-
-	React.useEffect(() => {
 		if (!userPolygon) {
 			return;
 		}
@@ -249,10 +295,23 @@ const PolygonGame: React.FC = (): JSX.Element => {
 			prepareNewTarget();
 		}
 
-		if (targetCount === Number(totalTargetCount)) {
-			setPastPolygons(() => []);
+		if (clueMode) {
+			displayPastPolygons();
 		}
 	}, [ targetCount ]);
+
+	React.useEffect(() => {
+		if (clueMode) {
+			displayCluePolygons();
+		}
+	}, [ cluePolygons ]);
+
+	React.useEffect(() => {
+		if (showResults) {
+			drawRef?.deleteAll();
+			displayPastPolygons();
+		}
+	}, [ showResults ]);
 
 	return (
 		<div className='polygon-game'>

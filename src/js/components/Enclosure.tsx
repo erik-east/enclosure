@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
+import ClueModeGameSelection from './ClueModeGameSelection';
 import GameSelection from './GameSelection';
 import Leaderboards from './Leaderboards';
 import MapComponent from './MapComponent';
@@ -22,6 +23,12 @@ const Enclosure: React.FC = (): JSX.Element => {
 							<Route index element={ <PolygonGameSelection /> } />
 							<Route path=':content/:id' element={ <PolygonGame /> } />
 							<Route path="*" element={ <Navigate replace to={ '/game/polygon/us-states/10' } /> } />
+						</Route>
+
+						<Route path='clue'>
+							<Route index element={ <ClueModeGameSelection /> } />
+							<Route path=':content/:id' element={ <PolygonGame clueMode /> } />
+							<Route path="*" element={ <Navigate replace to={ '/game/clue/us-states/easy' } /> } />
 						</Route>
 
 						<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
