@@ -10,6 +10,10 @@ const ClueModeGameSelection: React.FC = (): JSX.Element => {
 				<NavLink to='us-states/easy'>US States - Easy</NavLink>
 				<NavLink to='us-states/medium'>US States - Medium</NavLink>
 				<NavLink to='us-states/hard'>US States - Hard</NavLink>
+
+				<NavLink to='european-countries/easy'>European Countries - Easy</NavLink>
+				<NavLink to='european-countries/medium'>European Countries - Medium</NavLink>
+				<NavLink to='european-countries/hard'>European Countries - Hard</NavLink>
 			</div>
 		</div>
 	);

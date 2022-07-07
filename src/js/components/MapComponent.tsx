@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Map } from 'react-map-gl';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -9,10 +9,11 @@ const MAPBOX_STYLE = 'mapbox://styles/mapbox/satellite-v9';
 
 const MapComponent: React.FC = (): JSX.Element => {
 	const mapRef = React.useRef();
+	const { content } = useParams();
 	const [ viewState, setViewState ] = React.useState({
-		latitude: 36,
-		longitude: -98,
-		zoom: 3.5
+		latitude: content === 'us-states' ? 36 : 55,
+		longitude: content === 'us-states' ? -98 : 15,
+		zoom: content === 'us-states' ? 3.5 : 3.75
 	});
 
 	return (

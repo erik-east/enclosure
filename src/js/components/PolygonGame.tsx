@@ -3,6 +3,7 @@ import * as turf from '@turf/turf';
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
 import { initializePolygons, randomUniqueIndices } from '../lib/util';
@@ -12,7 +13,7 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const maximumScore = 9999;
-let statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+let statePolygons = [];
 
 // TODO: Move to lib
 const determineClueCount = (gameId: string) => {
@@ -43,7 +44,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
 	const navigate = useNavigate();
 	const { content, id: gameId } = useParams();
-	const totalTargetCount = (gameId === 'easy' || gameId === 'medium' || gameId === 'hard') ? 50 : gameId;
+	// TODO: Fix the nested ternary below
+	// eslint-disable-next-line no-nested-ternary
+	const totalTargetCount = (gameId === 'easy' || gameId === 'medium' || gameId === 'hard') ? (content === 'us-states' ? 50 : 38) : gameId;
 	const defaultClueCount = determineClueCount(gameId);
 
 	const incrementTargetCount = () => setTargetCount(targetCount + 1);
@@ -83,7 +86,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			const baseMultiplier = intersectionArea / targetArea;
 			const drawAccuracy = 1 - ((drawnArea - intersectionArea) / drawnArea);
 			// Penalty multiplier for draw accuracy is less forgiving if you overshoot more than 5 percent of target area
-			const penaltyMultiplier = drawnArea > (targetArea * 1.05) ? drawAccuracy * 0.9 : drawAccuracy;
+			const penaltyMultiplier = drawnArea > (targetArea * 1.25) ? drawAccuracy * 0.85 : drawAccuracy;
 			const finalScore = maximumScore * baseMultiplier * penaltyMultiplier;
 
 			setFinalScore(Number(finalScore.toFixed(0)));
@@ -96,7 +99,6 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			const difference = turf.difference(targetPolygon, intersection);
 
 			if (difference) {
-				console.log('difference', difference);
 				difference.properties = { class_id: 2 };
 				drawRef?.add(difference);
 				pastPolygon.difference = difference;
@@ -210,7 +212,12 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		setPastPolygons(() => []);
 		setCluePolygons(() => []);
 
-		statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+		if (content === 'us-states') {
+			statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+		}
+		else if (content === 'european-countries') {
+			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
+		}
 
 		resetTarget();
 		setTotalFinalScore(0);
@@ -256,12 +263,19 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	React.useEffect(() => {
-		if (!content || content !== 'us-states') {
+		if (!content || (content !== 'us-states' && content !== 'european-countries')) {
 			navigate('game');
 		}
 
 		if ((!totalTargetCount || Number(totalTargetCount) < 1 || Number(totalTargetCount) > 50)) {
 			navigate(`game/${content}`);
+		}
+
+		if (content === 'us-states') {
+			statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+		}
+		else if (content === 'european-countries') {
+			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
 		}
 
 		prepareNewTarget();
