@@ -76,19 +76,42 @@
 		grid-row-end: row3-start;
 		justify-self: center;
 
-		> a {
-			color: #94C7EB;
-			display: block;
-			padding-top: 22px;
-			text-align: center;
-			text-decoration: none;
-		}
-	}
+		.european-countries,
+		.games,
+		.us-states {
+			padding: 10px 0px;
 
-	.title {
-		font-size: 26px;
-		font-weight: bold;
-		margin-bottom: 8px;
-		text-align: center;
+			> a {
+				color: #94C7EB;
+				margin-left: 15px;
+				padding-top: 22px;
+				text-align: center;
+				text-decoration: none;
+			}
+		}
+
+		.games {
+			padding: 0px;
+
+			> a {
+				display: block;
+				margin-left: 0px;
+			}
+		}
+
+		.title {
+			font-size: 26px;
+			font-weight: bold;
+			margin-bottom: 10px;
+			text-align: center;
+		}
+
+		.us-states {
+			padding-top: 20px;
+
+			> span {
+				margin-right: 105px;
+			}
+		}
 	}
 }
