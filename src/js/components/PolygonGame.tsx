@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import * as turf from '@turf/turf';
 import * as React from 'react';
+import { useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
@@ -42,6 +43,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const [ userPolygon, setUserPolygon ] = React.useState();
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
+	const { mapbox } = useMap();
 	const navigate = useNavigate();
 	const { content, id: gameId } = useParams();
 	// TODO: Fix the nested ternary below
@@ -219,6 +221,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
 		}
 
+		flyToInitialPosition();
+
 		resetTarget();
 		setTotalFinalScore(0);
 		setDidGameEnd(false);
@@ -236,8 +240,26 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 		drawRef?.deleteAll();
 
+		flyToInitialPosition();
+
 		setFinalScore(-1);
 		setPolygons({});
+	};
+
+	const flyToInitialPosition = () => {
+		if (content === 'us-states') {
+			mapbox.flyTo({
+				center: [ -98, 36 ],
+				zoom: 3.5
+			});
+		}
+
+		if (content === 'european-countries') {
+			mapbox.flyTo({
+				center: [ 15, 55 ],
+				zoom: 3.75
+			});
+		}
 	};
 
 	const renderMenu = () => {
@@ -266,6 +288,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		if (!content || (content !== 'us-states' && content !== 'european-countries')) {
 			navigate('game');
 		}
+
+		flyToInitialPosition();
 
 		if ((!totalTargetCount || Number(totalTargetCount) < 1 || Number(totalTargetCount) > 50)) {
 			navigate(`game/${content}`);
@@ -323,6 +347,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	React.useEffect(() => {
 		if (showResults) {
 			drawRef?.deleteAll();
+			flyToInitialPosition();
 			displayPastPolygons();
 		}
 	}, [ showResults ]);

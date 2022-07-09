@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { MapProvider } from 'react-map-gl';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import ClueModeGameSelection from './ClueModeGameSelection';
@@ -15,28 +16,30 @@ const Enclosure: React.FC = (): JSX.Element => {
 			<Navbar />
 
 			<div className="container">
-				<Routes>
-					<Route path='game/*' element={ <MapComponent /> }>
-						<Route index element={ <GameSelection /> } />
+				<MapProvider>
+					<Routes>
+						<Route path='game/*' element={ <MapComponent /> }>
+							<Route index element={ <GameSelection /> } />
 
-						<Route path='polygon'>
-							<Route index element={ <PolygonGameSelection /> } />
-							<Route path=':content/:id' element={ <PolygonGame /> } />
-							<Route path="*" element={ <Navigate replace to={ '/game/polygon/us-states/10' } /> } />
+							<Route path='polygon'>
+								<Route index element={ <PolygonGameSelection /> } />
+								<Route path=':content/:id' element={ <PolygonGame /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/polygon/us-states/10' } /> } />
+							</Route>
+
+							<Route path='clue'>
+								<Route index element={ <ClueModeGameSelection /> } />
+								<Route path=':content/:id' element={ <PolygonGame clueMode /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/clue/us-states/easy' } /> } />
+							</Route>
+
+							<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
 						</Route>
 
-						<Route path='clue'>
-							<Route index element={ <ClueModeGameSelection /> } />
-							<Route path=':content/:id' element={ <PolygonGame clueMode /> } />
-							<Route path="*" element={ <Navigate replace to={ '/game/clue/us-states/easy' } /> } />
-						</Route>
-
+						<Route path='leaderboards' element={ <Leaderboards /> } />
 						<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
-					</Route>
-
-					<Route path='leaderboards' element={ <Leaderboards /> } />
-					<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
-				</Routes>
+					</Routes>
+				</MapProvider>
 			</div>
 		</div>
 	);
