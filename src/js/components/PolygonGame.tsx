@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as turf from '@turf/turf';
 import * as React from 'react';
-import { useMap } from 'react-map-gl';
+import { LngLatLike, useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
@@ -61,6 +61,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
 		const pastPolygon: { difference: any; intersection: any; polygon: any } = { difference: null, intersection, polygon: targetPolygon };
+
+		flyToTargetDestination(targetPolygon);
 
 		if (intersection === null) {
 			const deadWrong: any = targetPolygon;
@@ -257,9 +259,47 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		if (content === 'european-countries') {
 			mapbox.flyTo({
 				center: [ 15, 55 ],
-				zoom: 3.75
+				zoom: 3.6
 			});
 		}
+	};
+
+	const flyToTargetDestination = (targetDestination: any) => {
+		const area = turf.area(targetDestination);
+		const center = turf.centroid(targetDestination);
+		const { coordinates } = center.geometry;
+		const areaMillionth = area / 1000000000;
+		let zoomLevel = 5;
+
+		if (areaMillionth > 1500) {
+			zoomLevel = 3.45;
+		}
+		else if (areaMillionth > 1000) {
+			zoomLevel = 3.75;
+		}
+		else if (areaMillionth > 500) {
+			zoomLevel = 4;
+		}
+		else if (areaMillionth > 300) {
+			zoomLevel = 4.25;
+		}
+		else if (areaMillionth < 5) {
+			zoomLevel = 8.5;
+		}
+		else if (areaMillionth < 10) {
+			zoomLevel = 7.5;
+		}
+		else if (areaMillionth < 25) {
+			zoomLevel = 6.5;
+		}
+		else if (areaMillionth < 50) {
+			zoomLevel = 6.25;
+		}
+
+		mapbox.flyTo({
+			center: coordinates as LngLatLike,
+			zoom: zoomLevel
+		});
 	};
 
 	const renderMenu = () => {

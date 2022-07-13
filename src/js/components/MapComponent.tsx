@@ -13,7 +13,7 @@ const MapComponent: React.FC = (): JSX.Element => {
 	const [ viewState, setViewState ] = React.useState({
 		latitude: content === 'us-states' ? 36 : 55,
 		longitude: content === 'us-states' ? -98 : 15,
-		zoom: content === 'us-states' ? 3.5 : 3.75
+		zoom: content === 'us-states' ? 3.5 : 3.6
 	});
 
 	return (
