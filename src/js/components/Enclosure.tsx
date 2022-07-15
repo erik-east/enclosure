@@ -21,10 +21,10 @@ const Enclosure: React.FC = (): JSX.Element => {
 						<Route path='game/*' element={ <MapComponent /> }>
 							<Route index element={ <GameSelection /> } />
 
-							<Route path='polygon'>
+							<Route path='classic'>
 								<Route index element={ <PolygonGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/polygon/us-states/10' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/classic/us-states/10' } /> } />
 							</Route>
 
 							<Route path='clue'>

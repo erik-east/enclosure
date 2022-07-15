@@ -12,4 +12,20 @@
 			display: none;
 		}
 	}
+
+	.mapboxgl-popup {
+		.mapboxgl-popup-content {
+			@include sci-fi-box(#005066AA, 24px, 20px);
+
+			.polygon-tooltip {
+				text-align: center;
+				text-transform: capitalize;
+			}
+		}
+
+		.mapboxgl-popup-tip {
+			border-top-color: #025066;
+			margin-top: -2px;
+		}
+	}
 }

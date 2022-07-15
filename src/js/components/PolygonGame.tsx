@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as turf from '@turf/turf';
 import * as React from 'react';
-import { LngLatLike, useMap } from 'react-map-gl';
+import { LngLatLike, Popup, useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
@@ -43,6 +43,11 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const [ userPolygon, setUserPolygon ] = React.useState();
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
+	const [ showTooltip, setShowTooltip ] = React.useState(false);
+	const [ polygonTooltip, setPolygonTooltip ] = React.useState({
+		coordinates: [],
+		tooltipText: ''
+	});
 	const { mapbox } = useMap();
 	const navigate = useNavigate();
 	const { content, id: gameId } = useParams();
@@ -60,7 +65,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
-		const pastPolygon: { difference: any; intersection: any; polygon: any } = { difference: null, intersection, polygon: targetPolygon };
+		const pastPolygon: { difference: any; intersection: any; name: string; polygon: any } = { difference: null, intersection, name: targetState, polygon: targetPolygon };
 
 		flyToTargetDestination(targetPolygon);
 
@@ -117,10 +122,10 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			const cluePolygonsLength = Object.keys(cluePolygons).length;
 
 			for (let i = 0; i < cluePolygonsLength; i++) {
-				const cluePolygon = cluePolygons[ i ];
+				const { data: polygonData, name: polygonName } = cluePolygons[ i ];
 
-				cluePolygon.properties = { class_id: 4 };
-				drawRef?.add(cluePolygon);
+				polygonData.properties = { class_id: 'clue', polygon_name: polygonName };
+				drawRef?.add(polygonData);
 			}
 		}
 	};
@@ -130,22 +135,22 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			const pastPolygonsLength = Object.keys(pastPolygons).length;
 
 			for (let i = 0; i < pastPolygonsLength; i++) {
-				const { difference, intersection, polygon } = pastPolygons[ i ];
+				const { difference, intersection, name, polygon } = pastPolygons[ i ];
 
 				if (intersection === null) {
-					polygon.properties = { class_id: 2 };
+					polygon.properties = { class_id: 2, polygon_name: name };
 					drawRef?.add(polygon);
 					continue;
 				}
 
 				if (difference) {
-					difference.properties = { class_id: 2 };
-					intersection.properties = { class_id: 1 };
+					difference.properties = { class_id: 2, polygon_name: name };
+					intersection.properties = { class_id: 1, polygon_name: name };
 					drawRef?.add(difference);
 					drawRef?.add(intersection);
 				}
 				else {
-					polygon.properties = { class_id: 1 };
+					polygon.properties = { class_id: 1, polygon_name: name };
 					drawRef?.add(polygon);
 				}
 			}
@@ -183,6 +188,29 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		setIsDrawing(false);
 	}, [ ]);
 
+	const onPolygonMouseEnter = () => {
+		mapbox.on('mouseenter', 'gl-draw-polygon-fill-inactive.cold', (e) => {
+			// TODO: use this listener to render popups for clues and past polygons
+			const features = mapbox.queryRenderedFeatures(e.point);
+			const { geometry, properties } = features[ 0 ];
+			const { coordinates } = turf.centroid(geometry as turf.AllGeoJSON).geometry;
+
+			console.log(coordinates);
+			console.log(properties.user_polygon_name);
+			const { user_polygon_name: polygonName } = properties;
+
+			setPolygonTooltip({ coordinates, tooltipText: polygonName || '' });
+			setShowTooltip(true);
+		});
+	};
+
+	const onPolygonMouseLeave = () => {
+		mapbox.on('mouseleave', 'gl-draw-polygon-fill-inactive.cold', () => {
+			setShowTooltip(false);
+			setPolygonTooltip({ coordinates: [], tooltipText: '' });
+		});
+	};
+
 	const prepareNewTarget = () => {
 		const statesCount = statePolygons.length;
 		const clueCount = statesCount < defaultClueCount + 5 ? Math.max(0, statesCount - 5) : defaultClueCount;
@@ -194,7 +222,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 			randomIndices.delete(randomStateIndex);
 
-			const randomCluePolygons = statePolygons.filter((_, index) => randomIndices.has(index)).map(([ , polygonData ]) => polygonData);
+			const randomCluePolygons = statePolygons.filter((_, index) => randomIndices.has(index)).map(([ polygonName, polygonData ]) => {
+				return { data: polygonData, name: polygonName };
+			});
 
 			setCluePolygons(randomCluePolygons);
 		}
@@ -324,6 +354,34 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		);
 	};
 
+	const renderPolygonTooltip = () => {
+		if (showTooltip && polygonTooltip) {
+			const { coordinates, tooltipText } = polygonTooltip;
+
+			if (tooltipText === '') {
+				return null;
+			}
+
+			return (
+				<Popup
+					anchor='bottom'
+					closeButton={ false }
+					closeOnClick={ false }
+					closeOnMove
+					focusAfterOpen={ false }
+					longitude={ coordinates[ 0 ] }
+					latitude={ coordinates[ 1 ] }
+					offset={ [ 0, -30 ] }>
+					<div className='polygon-tooltip'>
+						{ tooltipText }
+					</div>
+				</Popup>
+			);
+		}
+
+		return null;
+	};
+
 	React.useEffect(() => {
 		if (!content || (content !== 'us-states' && content !== 'european-countries')) {
 			navigate('game');
@@ -342,6 +400,11 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
 		}
 
+		// Mapbox Event Listeners
+		onPolygonMouseEnter();
+		onPolygonMouseLeave();
+
+		// Set up the first target
 		prepareNewTarget();
 	}, [ ]);
 
@@ -419,6 +482,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 					showResults && <button className='restart' onClick={ () => restartGame() }>Restart Game</button>
 				}
 			</div>
+
+			{ renderPolygonTooltip() }
 		</div>
 	);
 };

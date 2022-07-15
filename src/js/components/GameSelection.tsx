@@ -7,7 +7,7 @@ const GameSelection: React.FC = (): JSX.Element => {
 			<div className='selection'>
 				<div className='title'>Game Types</div>
 				<div className='games'>
-					<NavLink to='polygon'>The OG - Polygon</NavLink>
+					<NavLink to='classic'>Classic Mode</NavLink>
 					<NavLink to='clue'>Clue Mode</NavLink>
 				</div>
 			</div>
