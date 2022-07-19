@@ -13,8 +13,9 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const maximumScore = 9999;
+const maximumScore = 100;
 let statePolygons = [];
+let tooltipTimeout;
 
 // TODO: Move to lib
 const determineClueCount = (gameId: string) => {
@@ -188,27 +189,41 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		setIsDrawing(false);
 	}, [ ]);
 
-	const onPolygonMouseEnter = () => {
+	const addPolygonMouseEvents = () => {
 		mapbox.on('mouseenter', 'gl-draw-polygon-fill-inactive.cold', (e) => {
-			// TODO: use this listener to render popups for clues and past polygons
-			const features = mapbox.queryRenderedFeatures(e.point);
-			const { geometry, properties } = features[ 0 ];
-			const { coordinates } = turf.centroid(geometry as turf.AllGeoJSON).geometry;
+			onPolygonMouseEnter(e);
+		});
 
-			console.log(coordinates);
-			console.log(properties.user_polygon_name);
-			const { user_polygon_name: polygonName } = properties;
+		mapbox.on('mouseleave', 'gl-draw-polygon-fill-inactive.cold', () => {
+			onPolygonMouseLeave();
+		});
 
-			setPolygonTooltip({ coordinates, tooltipText: polygonName || '' });
-			setShowTooltip(true);
+		// Disables interaction by resetting the mode when a feature is selected
+		mapbox.on('draw.selectionchange', () => {
+			setTimeout(() => drawRef?.changeMode('simple_select'), 150);
 		});
 	};
 
+	const onPolygonMouseEnter = (e) => {
+		const features = mapbox.queryRenderedFeatures(e.point);
+		const { geometry, properties } = features[ 0 ];
+		const { coordinates } = turf.centroid(geometry as turf.AllGeoJSON).geometry;
+		const { user_polygon_name: polygonName } = properties;
+
+		if (tooltipTimeout !== undefined) {
+			clearTimeout(tooltipTimeout);
+			tooltipTimeout = undefined;
+		}
+
+		setPolygonTooltip({ coordinates, tooltipText: polygonName || '' });
+		setShowTooltip(true);
+	};
+
 	const onPolygonMouseLeave = () => {
-		mapbox.on('mouseleave', 'gl-draw-polygon-fill-inactive.cold', () => {
+		tooltipTimeout = setTimeout(() => {
 			setShowTooltip(false);
 			setPolygonTooltip({ coordinates: [], tooltipText: '' });
-		});
+		}, 100);
 	};
 
 	const prepareNewTarget = () => {
@@ -400,9 +415,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
 		}
 
-		// Mapbox Event Listeners
-		onPolygonMouseEnter();
-		onPolygonMouseLeave();
+		// Mapbox Polygon Related Event Listeners
+		addPolygonMouseEvents();
 
 		// Set up the first target
 		prepareNewTarget();

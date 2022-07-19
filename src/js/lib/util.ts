@@ -1,5 +1,15 @@
 import * as turf from '@turf/turf';
 
+export function debounce<T extends (...params: Array<any>) => void>(context: T, time: number): (...params: Array<any>) => void {
+	let timeout: number;
+
+	return function(...args: Array<any>) {
+		clearTimeout(timeout);
+
+		timeout = window.setTimeout(context.bind(this, ...args), time);
+	};
+}
+
 export function initializePolygons(singlePolygons: unknown, multiPolygons: unknown): Array<any> {
 	const polygons = [];
 

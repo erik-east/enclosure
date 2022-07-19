@@ -27,9 +27,9 @@ export const POLYGON_THEME = [
 		filter: [ 'all', [ '==', 'active', 'true' ], [ '==', '$type', 'Polygon' ] ],
 		id: 'gl-draw-polygon-fill-active',
 		paint: {
-			'fill-color': '#fbb03b',
+			'fill-color': '#78CCE2',
 			'fill-opacity': 0.1,
-			'fill-outline-color': '#fbb03b'
+			'fill-outline-color': '#78CCE2'
 		},
 		type: 'fill'
 	},
@@ -37,7 +37,7 @@ export const POLYGON_THEME = [
 		filter: [ 'all', [ '==', '$type', 'Point' ], [ '==', 'meta', 'midpoint' ] ],
 		id: 'gl-draw-polygon-midpoint',
 		paint: {
-			'circle-color': '#fbb03b',
+			'circle-color': '#005066', // Midpoint color of selected polygons
 			'circle-radius': 3
 		},
 		type: 'circle'
@@ -81,7 +81,7 @@ export const POLYGON_THEME = [
 			'line-join': 'round'
 		},
 		paint: {
-			'line-color': '#fbb03b',
+			'line-color': '#78CCE2', // Color of borders of drawn polygons
 			'line-dasharray': [ 0.2, 2 ],
 			'line-width': 2
 		},
@@ -142,7 +142,7 @@ export const POLYGON_THEME = [
 		],
 		id: 'gl-draw-polygon-and-line-vertex-inactive',
 		paint: {
-			'circle-color': '#fbb03b',
+			'circle-color': '#78CCE2', // Vertex color of selected polygons and draw tool
 			'circle-radius': 3
 		},
 		type: 'circle'
