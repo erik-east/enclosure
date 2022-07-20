@@ -5,7 +5,9 @@ import { LngLatLike, Popup, useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
+import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
+import { SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
 import { initializePolygons, randomUniqueIndices } from '../lib/util';
 
@@ -14,11 +16,37 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const maximumScore = 100;
-let statePolygons = [];
+let gameContentPolygons = [];
 let tooltipTimeout;
 
 // TODO: Move to lib
-const determineClueCount = (gameId: string) => {
+const determineClueCount = (content: string, gameId: string) => {
+	if (content === 'europe') {
+		switch (gameId) {
+			case 'easy':
+				return 7;
+			case 'medium':
+				return 4;
+			case 'hard':
+				return 2;
+			default:
+				return 4;
+		}
+	}
+
+	if (content === 'south-america') {
+		switch (gameId) {
+			case 'easy':
+				return 3;
+			case 'medium':
+				return 2;
+			case 'hard':
+				return 1;
+			default:
+				return 2;
+		}
+	}
+
 	switch (gameId) {
 		case 'easy':
 			return 8;
@@ -28,6 +56,40 @@ const determineClueCount = (gameId: string) => {
 			return 3;
 		default:
 			return 5;
+	}
+};
+
+const determineGameContentPolygons = (content: string) => {
+	let gameContentPolygons = [];
+
+	if (content === 'us-states') {
+		gameContentPolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+	}
+	else if (content === 'europe') {
+		gameContentPolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
+	}
+	else if (content === 'south-america') {
+		gameContentPolygons = initializePolygons(SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES, MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES);
+	}
+
+	return gameContentPolygons;
+};
+
+const determineTotalTargetCount = (content: string, gameId: string) => {
+	if (!(gameId === 'easy' || gameId === 'medium' || gameId === 'hard')) {
+		return gameId;
+	}
+
+	if (content === 'us-states') {
+		return 50;
+	}
+
+	if (content === 'europe') {
+		return 38;
+	}
+
+	if (content === 'south-america') {
+		return 13;
 	}
 };
 
@@ -52,10 +114,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const { mapbox } = useMap();
 	const navigate = useNavigate();
 	const { content, id: gameId } = useParams();
-	// TODO: Fix the nested ternary below
-	// eslint-disable-next-line no-nested-ternary
-	const totalTargetCount = (gameId === 'easy' || gameId === 'medium' || gameId === 'hard') ? (content === 'us-states' ? 50 : 38) : gameId;
-	const defaultClueCount = determineClueCount(gameId);
+	const totalTargetCount = determineTotalTargetCount(content, gameId);
+	const defaultClueCount = determineClueCount(content, gameId);
 
 	const incrementTargetCount = () => setTargetCount(targetCount + 1);
 	const incrementTotalFinalScore = (finalScore) => setTotalFinalScore(totalFinalScore + Number(finalScore));
@@ -227,7 +287,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	const prepareNewTarget = () => {
-		const statesCount = statePolygons.length;
+		const statesCount = gameContentPolygons.length;
 		const clueCount = statesCount < defaultClueCount + 5 ? Math.max(0, statesCount - 5) : defaultClueCount;
 		const randomIndices = randomUniqueIndices(clueCount + 1, statesCount);
 		const [ randomStateIndex ] = randomIndices;
@@ -237,20 +297,20 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 			randomIndices.delete(randomStateIndex);
 
-			const randomCluePolygons = statePolygons.filter((_, index) => randomIndices.has(index)).map(([ polygonName, polygonData ]) => {
+			const randomCluePolygons = gameContentPolygons.filter((_, index) => randomIndices.has(index)).map(([ polygonName, polygonData ]) => {
 				return { data: polygonData, name: polygonName };
 			});
 
 			setCluePolygons(randomCluePolygons);
 		}
 
-		for (let i = 0; i < statePolygons.length; i++) {
+		for (let i = 0; i < gameContentPolygons.length; i++) {
 			if (i === randomStateIndex) {
-				const [ polygonName, polygonData ] = statePolygons[ i ];
+				const [ polygonName, polygonData ] = gameContentPolygons[ i ];
 
 				setTargetPolygon(polygonData);
 				setTargetState(polygonName);
-				statePolygons.splice(i, 1);
+				gameContentPolygons.splice(i, 1);
 
 				break;
 			}
@@ -261,12 +321,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		setPastPolygons(() => []);
 		setCluePolygons(() => []);
 
-		if (content === 'us-states') {
-			statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
-		}
-		else if (content === 'european-countries') {
-			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
-		}
+		gameContentPolygons = determineGameContentPolygons(content);
 
 		flyToInitialPosition();
 
@@ -301,10 +356,17 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			});
 		}
 
-		if (content === 'european-countries') {
+		if (content === 'europe') {
 			mapbox.flyTo({
 				center: [ 15, 55 ],
 				zoom: 3.6
+			});
+		}
+
+		if (content === 'south-america') {
+			mapbox.flyTo({
+				center: [ -69, -19 ],
+				zoom: 2.9
 			});
 		}
 	};
@@ -398,22 +460,20 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	React.useEffect(() => {
-		if (!content || (content !== 'us-states' && content !== 'european-countries')) {
+		if (!content || (content !== 'us-states' && content !== 'europe' && content !== 'south-america')) {
 			navigate('game');
 		}
 
 		flyToInitialPosition();
 
-		if ((!totalTargetCount || Number(totalTargetCount) < 1 || Number(totalTargetCount) > 50)) {
+		if ((!totalTargetCount || Number(totalTargetCount) < 1
+		|| (content === 'us-states' && Number(totalTargetCount) > 50)
+		|| (content === 'europe' && Number(totalTargetCount) > 38)
+		|| (content === 'south-america' && Number(totalTargetCount) > 13))) {
 			navigate(`game/${content}`);
 		}
 
-		if (content === 'us-states') {
-			statePolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
-		}
-		else if (content === 'european-countries') {
-			statePolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
-		}
+		gameContentPolygons = determineGameContentPolygons(content);
 
 		// Mapbox Polygon Related Event Listeners
 		addPolygonMouseEvents();

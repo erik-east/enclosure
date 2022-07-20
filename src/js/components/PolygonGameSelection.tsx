@@ -15,12 +15,19 @@ const PolygonGameSelection: React.FC = (): JSX.Element => {
 					<NavLink to='us-states/50'>50</NavLink>
 				</div>
 
-				<div className='european-countries'>
-					<span>European Countries</span>
-					<NavLink to='european-countries/5'>5</NavLink>
-					<NavLink to='european-countries/10'>10</NavLink>
-					<NavLink to='european-countries/20'>20</NavLink>
-					<NavLink to='european-countries/38'>38</NavLink>
+				<div className='europe'>
+					<span>Europe</span>
+					<NavLink to='europe/5'>5</NavLink>
+					<NavLink to='europe/10'>10</NavLink>
+					<NavLink to='europe/20'>20</NavLink>
+					<NavLink to='europe/38'>38</NavLink>
+				</div>
+
+				<div className='south-america'>
+					<span>South America</span>
+					<NavLink to='south-america/5'>5</NavLink>
+					<NavLink to='south-america/10'>10</NavLink>
+					<NavLink to='south-america/13'>13</NavLink>
 				</div>
 			</div>
 		</div>
