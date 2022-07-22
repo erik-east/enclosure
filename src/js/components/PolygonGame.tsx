@@ -15,6 +15,8 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+const MEMORIZE_MODE = false;
+const memorizeModeDisplayTime = 2500;
 const maximumScore = 100;
 let gameContentPolygons = [];
 let tooltipTimeout;
@@ -106,6 +108,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const [ userPolygon, setUserPolygon ] = React.useState();
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
+	const [ memoryPolygons, setMemoryPolygons ] = React.useState([]);
 	const [ showTooltip, setShowTooltip ] = React.useState(false);
 	const [ polygonTooltip, setPolygonTooltip ] = React.useState({
 		coordinates: [],
@@ -116,8 +119,12 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const { content, id: gameId } = useParams();
 	const totalTargetCount = determineTotalTargetCount(content, gameId);
 	const defaultClueCount = determineClueCount(content, gameId);
+	// Need this to be able to use the target count inside setTimeout
+	const targetCountRef = React.useRef(targetCount);
 
-	const incrementTargetCount = () => setTargetCount(targetCount + 1);
+	targetCountRef.current = targetCount;
+
+	const incrementTargetCount = () => setTargetCount(targetCountRef.current + 1);
 	const incrementTotalFinalScore = (finalScore) => setTotalFinalScore(totalFinalScore + Number(finalScore));
 
 	const addPastPolygon = (pastPolygon: any) => {
@@ -287,15 +294,15 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	const prepareNewTarget = () => {
-		const statesCount = gameContentPolygons.length;
-		const clueCount = statesCount < defaultClueCount + 5 ? Math.max(0, statesCount - 5) : defaultClueCount;
-		const randomIndices = randomUniqueIndices(clueCount + 1, statesCount);
-		const [ randomStateIndex ] = randomIndices;
+		const gameContentPolygonsCount = gameContentPolygons.length;
+		const clueCount = gameContentPolygonsCount < defaultClueCount + 5 ? Math.max(0, gameContentPolygonsCount - 5) : defaultClueCount;
+		const randomIndices = randomUniqueIndices(clueCount + 1, gameContentPolygonsCount);
+		const [ randomTargetPolygonIndex ] = randomIndices;
 
 		if (clueMode) {
 			setCluePolygons(() => []);
 
-			randomIndices.delete(randomStateIndex);
+			randomIndices.delete(randomTargetPolygonIndex);
 
 			const randomCluePolygons = gameContentPolygons.filter((_, index) => randomIndices.has(index)).map(([ polygonName, polygonData ]) => {
 				return { data: polygonData, name: polygonName };
@@ -305,7 +312,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		}
 
 		for (let i = 0; i < gameContentPolygons.length; i++) {
-			if (i === randomStateIndex) {
+			if (i === randomTargetPolygonIndex) {
 				const [ polygonName, polygonData ] = gameContentPolygons[ i ];
 
 				setTargetPolygon(polygonData);
@@ -315,6 +322,17 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 				break;
 			}
 		}
+	};
+
+	const setUpMemorizeModeTargets = () => {
+		const gameContentPolygonsCount = gameContentPolygons.length;
+		const randomIndices = randomUniqueIndices(Number(gameId), gameContentPolygonsCount);
+
+		const randomMemoryPolygons = gameContentPolygons.filter((_, index) => randomIndices.has(index)).map(([ polygonName, polygonData ]) => {
+			return { data: polygonData, name: polygonName };
+		});
+
+		setMemoryPolygons(randomMemoryPolygons);
 	};
 
 	const restartGame = () => {
@@ -464,14 +482,14 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			navigate('game');
 		}
 
-		flyToInitialPosition();
-
 		if ((!totalTargetCount || Number(totalTargetCount) < 1
 		|| (content === 'us-states' && Number(totalTargetCount) > 50)
 		|| (content === 'europe' && Number(totalTargetCount) > 38)
 		|| (content === 'south-america' && Number(totalTargetCount) > 13))) {
 			navigate(`game/${content}`);
 		}
+
+		flyToInitialPosition();
 
 		gameContentPolygons = determineGameContentPolygons(content);
 
@@ -480,6 +498,10 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 		// Set up the first target
 		prepareNewTarget();
+
+		if (MEMORIZE_MODE) {
+			setUpMemorizeModeTargets();
+		}
 	}, [ ]);
 
 	React.useEffect(() => {
@@ -505,6 +527,10 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	}, [ userPolygon ]);
 
 	React.useEffect(() => {
+		if (MEMORIZE_MODE) {
+			return; //TODO: don't forget to remove this
+		}
+
 		if (targetCount > 1) {
 			resetTarget();
 			prepareNewTarget();
@@ -520,6 +546,47 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			displayCluePolygons();
 		}
 	}, [ cluePolygons ]);
+
+	React.useEffect(() => {
+		const timers = [];
+
+		if (memoryPolygons && Object.keys(memoryPolygons).length > 0) {
+			const memoryPolygonsLength = Object.keys(memoryPolygons).length;
+
+			for (let i = 0; i < memoryPolygonsLength; i++) {
+				const { data: polygonData, name: polygonName } = memoryPolygons[ i ];
+
+				timers.push(setTimeout(() => {
+					drawRef?.deleteAll();
+
+					polygonData.properties = { class_id: 1, polygon_name: polygonName };
+					drawRef?.add(polygonData);
+
+					flyToTargetDestination(polygonData);
+
+					setTargetState(polygonName);
+
+					if (i > 0) {
+						incrementTargetCount();
+					}
+
+					if (i + 1 === Number(gameId)) {
+						timers.push(setTimeout(() => {
+							drawRef?.deleteAll();
+							flyToInitialPosition();
+							// TODO: Clean this up and handle it outside here
+							setTargetCount(1);
+							setTargetState(memoryPolygons[ 0 ].name);
+						}, memorizeModeDisplayTime));
+					}
+				}, i * memorizeModeDisplayTime));
+			}
+		}
+
+		return () => {
+			timers.forEach((timer) => clearTimeout(timer));
+		};
+	}, [ memoryPolygons ]);
 
 	React.useEffect(() => {
 		if (showResults) {

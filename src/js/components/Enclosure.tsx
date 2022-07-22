@@ -2,13 +2,13 @@ import * as React from 'react';
 import { MapProvider } from 'react-map-gl';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
+import ClassicModeGameSelection from './ClassicModeGameSelection';
 import ClueModeGameSelection from './ClueModeGameSelection';
 import GameSelection from './GameSelection';
 import Leaderboards from './Leaderboards';
 import MapComponent from './MapComponent';
 import Navbar from './Navbar';
 import PolygonGame from './PolygonGame';
-import PolygonGameSelection from './PolygonGameSelection';
 
 const Enclosure: React.FC = (): JSX.Element => {
 	return (
@@ -22,7 +22,7 @@ const Enclosure: React.FC = (): JSX.Element => {
 							<Route index element={ <GameSelection /> } />
 
 							<Route path='classic'>
-								<Route index element={ <PolygonGameSelection /> } />
+								<Route index element={ <ClassicModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame /> } />
 								<Route path="*" element={ <Navigate replace to={ '/game/classic/us-states/10' } /> } />
 							</Route>

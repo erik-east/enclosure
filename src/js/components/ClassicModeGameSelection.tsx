@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const PolygonGameSelection: React.FC = (): JSX.Element => {
+const ClassicModeGameSelection: React.FC = (): JSX.Element => {
 	return (
 		<div className='polygon-game'>
 			<div className='selection'>
-				<div className='title'>Polygon Games</div>
+				<div className='title'>Classic Mode</div>
 
 				<div className='us-states'>
 					<span>US States</span>
@@ -34,4 +34,4 @@ const PolygonGameSelection: React.FC = (): JSX.Element => {
 	);
 };
 
-export default PolygonGameSelection;
+export default ClassicModeGameSelection;
