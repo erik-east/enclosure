@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 
 const ClueModeGameSelection: React.FC = (): JSX.Element => {
 	return (
-		// TODO: Update className with clue-mode after adding it as a class
 		<div className='polygon-game'>
 			<div className='selection'>
 				<div className='title'>Clue Mode</div>

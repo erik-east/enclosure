@@ -7,6 +7,7 @@ import ClueModeGameSelection from './ClueModeGameSelection';
 import GameSelection from './GameSelection';
 import Leaderboards from './Leaderboards';
 import MapComponent from './MapComponent';
+import MemorizeModeGameSelection from './MemorizeModeGameSelection';
 import Navbar from './Navbar';
 import PolygonGame from './PolygonGame';
 
@@ -24,13 +25,19 @@ const Enclosure: React.FC = (): JSX.Element => {
 							<Route path='classic'>
 								<Route index element={ <ClassicModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/classic/us-states/10' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/classic' } /> } />
 							</Route>
 
 							<Route path='clue'>
 								<Route index element={ <ClueModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame clueMode /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/clue/us-states/easy' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/clue' } /> } />
+							</Route>
+
+							<Route path='memorize'>
+								<Route index element={ <MemorizeModeGameSelection /> } />
+								<Route path=':content/:id' element={ <PolygonGame memorizeMode /> } />
+								<Route path="*" element={ <Navigate replace to={ '/game/memorize' } /> } />
 							</Route>
 
 							<Route path="*" element={ <Navigate replace to={ '/game' } /> } />

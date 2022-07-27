@@ -4,6 +4,7 @@ import * as React from 'react';
 import { LngLatLike, Popup, useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { INITIAL_POSITION } from '../constants/INITIAL_POSITION';
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
 import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
@@ -15,7 +16,7 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-const MEMORIZE_MODE = false;
+// TODO: Add these two lines below in a config file
 const memorizeModeDisplayTime = 2500;
 const maximumScore = 100;
 let gameContentPolygons = [];
@@ -77,25 +78,29 @@ const determineGameContentPolygons = (content: string) => {
 	return gameContentPolygons;
 };
 
-const determineTotalTargetCount = (content: string, gameId: string) => {
-	if (!(gameId === 'easy' || gameId === 'medium' || gameId === 'hard')) {
-		return gameId;
+const determineTotalTargetCount = (content: string, gameId: string, gameMode: string) => {
+	if (gameMode === 'classic' || gameMode === 'memorize') {
+		return turf.isNumber(Number(gameId)) ? Number(gameId) : 0;
 	}
 
-	if (content === 'us-states') {
-		return 50;
+	if ((gameMode === 'clue' && (gameId === 'easy' || gameId === 'medium' || gameId === 'hard'))) {
+		if (content === 'us-states') {
+			return 50;
+		}
+
+		if (content === 'europe') {
+			return 38;
+		}
+
+		if (content === 'south-america') {
+			return 13;
+		}
 	}
 
-	if (content === 'europe') {
-		return 38;
-	}
-
-	if (content === 'south-america') {
-		return 13;
-	}
+	return 0;
 };
 
-const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JSX.Element => {
+const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({ clueMode = false, memorizeMode = false }): JSX.Element => {
 	const [ finalScore, setFinalScore ] = React.useState(-1);
 	const [ totalFinalScore, setTotalFinalScore ] = React.useState(0);
 	const [ didGameEnd, setDidGameEnd ] = React.useState(false);
@@ -103,12 +108,14 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const [ isDrawing, setIsDrawing ] = React.useState(false);
 	const [ polygons, setPolygons ] = React.useState({});
 	const [ targetCount, setTargetCount ] = React.useState(1);
-	const [ targetState, setTargetState ] = React.useState('');
+	const [ targetName, setTargetName ] = React.useState('');
 	const [ targetPolygon, setTargetPolygon ] = React.useState();
 	const [ userPolygon, setUserPolygon ] = React.useState();
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
 	const [ memoryPolygons, setMemoryPolygons ] = React.useState([]);
+	const [ isDisplayingMemoryPolygons, setIsDisplayingMemoryPolygons ] = React.useState(false); // Add state machine to keep track of status instead
+	const [ didMemoryPolygonsDisplay, setDidMemoryPolygonsDisplay ] = React.useState(false);
 	const [ showTooltip, setShowTooltip ] = React.useState(false);
 	const [ polygonTooltip, setPolygonTooltip ] = React.useState({
 		coordinates: [],
@@ -117,7 +124,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	const { mapbox } = useMap();
 	const navigate = useNavigate();
 	const { content, id: gameId } = useParams();
-	const totalTargetCount = determineTotalTargetCount(content, gameId);
+	// eslint-disable-next-line no-nested-ternary
+	const gameMode = clueMode ? 'clue' : (memorizeMode ? 'memorize' : 'classic');
+	const totalTargetCount = determineTotalTargetCount(content, gameId, gameMode);
 	const defaultClueCount = determineClueCount(content, gameId);
 	// Need this to be able to use the target count inside setTimeout
 	const targetCountRef = React.useRef(targetCount);
@@ -133,7 +142,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
-		const pastPolygon: { difference: any; intersection: any; name: string; polygon: any } = { difference: null, intersection, name: targetState, polygon: targetPolygon };
+		const pastPolygon: { difference: any; intersection: any; name: string; polygon: any } = { difference: null, intersection, name: targetName, polygon: targetPolygon };
 
 		flyToTargetDestination(targetPolygon);
 
@@ -293,6 +302,49 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		}, 100);
 	};
 
+	const onDisplayMemoryPolygons = () => {
+		if (memoryPolygons && Object.keys(memoryPolygons).length > 0) {
+			const memoryPolygonsLength = Object.keys(memoryPolygons).length;
+
+			setIsDisplayingMemoryPolygons(true);
+
+			for (let i = 0; i < memoryPolygonsLength; i++) {
+				const { data: polygonData, name: polygonName } = memoryPolygons[ i ];
+
+				setTimeout(() => {
+					drawRef?.deleteAll();
+
+					polygonData.properties = { class_id: 1, polygon_name: polygonName };
+					drawRef?.add(polygonData);
+
+					flyToTargetDestination(polygonData);
+
+					setTargetName(polygonName);
+
+					if (i > 0) {
+						incrementTargetCount();
+					}
+
+					if (i + 1 === Number(gameId)) {
+						setTimeout(() => {
+							const { data: polygonData, name: polygonName } = memoryPolygons[ 0 ];
+
+							drawRef?.deleteAll();
+							flyToInitialPosition();
+
+							setTargetCount(1);
+							setTargetName(polygonName);
+							setTargetPolygon(polygonData);
+
+							setDidMemoryPolygonsDisplay(true);
+							setIsDisplayingMemoryPolygons(false);
+						}, memorizeModeDisplayTime);
+					}
+				}, i * memorizeModeDisplayTime);
+			}
+		}
+	};
+
 	const prepareNewTarget = () => {
 		const gameContentPolygonsCount = gameContentPolygons.length;
 		const clueCount = gameContentPolygonsCount < defaultClueCount + 5 ? Math.max(0, gameContentPolygonsCount - 5) : defaultClueCount;
@@ -316,7 +368,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 				const [ polygonName, polygonData ] = gameContentPolygons[ i ];
 
 				setTargetPolygon(polygonData);
-				setTargetState(polygonName);
+				setTargetName(polygonName);
 				gameContentPolygons.splice(i, 1);
 
 				break;
@@ -336,6 +388,10 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	const restartGame = () => {
+		if (memorizeMode) {
+			setDidMemoryPolygonsDisplay(false);
+		}
+
 		setPastPolygons(() => []);
 		setCluePolygons(() => []);
 
@@ -349,9 +405,15 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		setShowResults(false);
 		setIsDrawing(false);
 		setTargetCount(1);
-		setTargetState('');
+		setTargetName('');
 		setTargetPolygon(undefined);
-		prepareNewTarget();
+
+		if (memorizeMode) {
+			setUpMemorizeModeTargets();
+		}
+		else {
+			prepareNewTarget();
+		}
 	};
 
 	const resetTarget = () => {
@@ -367,26 +429,13 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	};
 
 	const flyToInitialPosition = () => {
-		if (content === 'us-states') {
-			mapbox.flyTo({
-				center: [ -98, 36 ],
-				zoom: 3.5
-			});
-		}
+		const { latitude, longitude, zoom } = INITIAL_POSITION[ content ];
+		const center: LngLatLike = [ longitude, latitude ];
 
-		if (content === 'europe') {
-			mapbox.flyTo({
-				center: [ 15, 55 ],
-				zoom: 3.6
-			});
-		}
-
-		if (content === 'south-america') {
-			mapbox.flyTo({
-				center: [ -69, -19 ],
-				zoom: 2.9
-			});
-		}
+		mapbox.flyTo({
+			center,
+			zoom
+		});
 	};
 
 	const flyToTargetDestination = (targetDestination: any) => {
@@ -427,6 +476,46 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		});
 	};
 
+	const renderDrawStartButton = (): JSX.Element => {
+		if ((memorizeMode && !didMemoryPolygonsDisplay) || isDrawing || userPolygon) {
+			return null;
+		}
+
+		return  <button className='start' onClick={ onDrawStart }>Draw</button>;
+	};
+
+	const renderDisplayMemoryPolygonsButton = (): JSX.Element => {
+		if (memorizeMode && !didMemoryPolygonsDisplay && !isDisplayingMemoryPolygons) {
+			return <button className='start' onClick={ onDisplayMemoryPolygons }>Start</button>;
+		}
+
+		return null;
+	};
+
+	const renderNextTargetButton = (): JSX.Element => {
+		if (!didGameEnd && !isDrawing && finalScore >= 0) {
+			return <button className='next' onClick={ incrementTargetCount }>Next</button>;
+		}
+
+		return null;
+	};
+
+	const renderRestartGameButton = (): JSX.Element => {
+		if (showResults) {
+			return <button className='restart' onClick={ () => restartGame() }>Restart Game</button>;
+		}
+
+		return null;
+	};
+
+	const renderShowResultsButton = (): JSX.Element => {
+		if (didGameEnd && !showResults) {
+			return <button className='show-results' onClick={ () => setShowResults(true) }>Show Results</button>;
+		}
+
+		return null;
+	};
+
 	const renderMenu = () => {
 		if (showResults) {
 			return (
@@ -437,10 +526,20 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			);
 		}
 
+		if (memorizeMode && !didMemoryPolygonsDisplay && !isDisplayingMemoryPolygons) {
+			return (
+				<div className='menu'>
+					<div className='current-target'>
+						<span>Ready?</span>
+					</div>
+				</div>
+			);
+		}
+
 		return (
 			<div className='menu'>
-				<div className='current-state'>
-					<span>{ targetState }</span>
+				<div className='current-target'>
+					<span>{ targetName }</span>
 					<span className='count'>{ targetCount } / { totalTargetCount }</span>
 				</div>
 
@@ -486,7 +585,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		|| (content === 'us-states' && Number(totalTargetCount) > 50)
 		|| (content === 'europe' && Number(totalTargetCount) > 38)
 		|| (content === 'south-america' && Number(totalTargetCount) > 13))) {
-			navigate(`game/${content}`);
+			navigate(`/game/${gameMode}`, { replace: true });
+
+			return;
 		}
 
 		flyToInitialPosition();
@@ -496,16 +597,18 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 		// Mapbox Polygon Related Event Listeners
 		addPolygonMouseEvents();
 
-		// Set up the first target
-		prepareNewTarget();
-
-		if (MEMORIZE_MODE) {
+		if (memorizeMode) {
 			setUpMemorizeModeTargets();
+		}
+		else {
+			// Sets up the first target
+			prepareNewTarget();
 		}
 	}, [ ]);
 
 	React.useEffect(() => {
-		if (userPolygon && targetCount === Number(totalTargetCount)) { // TODO: Change this when user can add multiple polygons
+		// TODO: Change this when user can add multiple polygons
+		if (userPolygon && targetCount === Number(totalTargetCount)) {
 			setDidGameEnd(true);
 		}
 	}, [ finalScore ]);
@@ -527,13 +630,23 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 	}, [ userPolygon ]);
 
 	React.useEffect(() => {
-		if (MEMORIZE_MODE) {
-			return; //TODO: don't forget to remove this
+		if (memorizeMode && !didMemoryPolygonsDisplay) {
+			return;
 		}
 
 		if (targetCount > 1) {
 			resetTarget();
-			prepareNewTarget();
+
+			if (memorizeMode) {
+				const memoryPolygonIndex = targetCount - 1;
+				const { data: polygonData, name: polygonName } = memoryPolygons[ memoryPolygonIndex ];
+
+				setTargetName(polygonName);
+				setTargetPolygon(polygonData);
+			}
+			else {
+				prepareNewTarget();
+			}
 		}
 
 		if (clueMode) {
@@ -546,47 +659,6 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			displayCluePolygons();
 		}
 	}, [ cluePolygons ]);
-
-	React.useEffect(() => {
-		const timers = [];
-
-		if (memoryPolygons && Object.keys(memoryPolygons).length > 0) {
-			const memoryPolygonsLength = Object.keys(memoryPolygons).length;
-
-			for (let i = 0; i < memoryPolygonsLength; i++) {
-				const { data: polygonData, name: polygonName } = memoryPolygons[ i ];
-
-				timers.push(setTimeout(() => {
-					drawRef?.deleteAll();
-
-					polygonData.properties = { class_id: 1, polygon_name: polygonName };
-					drawRef?.add(polygonData);
-
-					flyToTargetDestination(polygonData);
-
-					setTargetState(polygonName);
-
-					if (i > 0) {
-						incrementTargetCount();
-					}
-
-					if (i + 1 === Number(gameId)) {
-						timers.push(setTimeout(() => {
-							drawRef?.deleteAll();
-							flyToInitialPosition();
-							// TODO: Clean this up and handle it outside here
-							setTargetCount(1);
-							setTargetState(memoryPolygons[ 0 ].name);
-						}, memorizeModeDisplayTime));
-					}
-				}, i * memorizeModeDisplayTime));
-			}
-		}
-
-		return () => {
-			timers.forEach((timer) => clearTimeout(timer));
-		};
-	}, [ memoryPolygons ]);
 
 	React.useEffect(() => {
 		if (showResults) {
@@ -606,22 +678,11 @@ const PolygonGame: React.FC<{ clueMode?: boolean }> = ({ clueMode = false }): JS
 			{ renderMenu() }
 
 			<div className='buttons'>
-				{
-					!isDrawing && !userPolygon && <button className='start' onClick={ onDrawStart }>Draw</button>
-				}
-
-				{
-					finalScore >= 0 && !isDrawing && !didGameEnd &&
-					<button className='next' onClick={ incrementTargetCount }>Next</button>
-				}
-
-				{
-					didGameEnd && !showResults && <button className='show-results' onClick={ () => setShowResults(true) }>Show Results</button>
-				}
-
-				{
-					showResults && <button className='restart' onClick={ () => restartGame() }>Restart Game</button>
-				}
+				{ renderDisplayMemoryPolygonsButton() }
+				{ renderDrawStartButton() }
+				{ renderNextTargetButton() }
+				{ renderShowResultsButton() }
+				{ renderRestartGameButton() }
 			</div>
 
 			{ renderPolygonTooltip() }

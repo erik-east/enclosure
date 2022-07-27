@@ -9,6 +9,7 @@ const GameSelection: React.FC = (): JSX.Element => {
 				<div className='games'>
 					<NavLink to='classic'>Classic Mode</NavLink>
 					<NavLink to='clue'>Clue Mode</NavLink>
+					<NavLink to='memorize'>Memorize Mode</NavLink>
 				</div>
 			</div>
 		</div>
