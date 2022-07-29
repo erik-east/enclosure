@@ -2,7 +2,7 @@ import * as React from 'react';
 
 const Leaderboards: React.FC = () => (
 	<div className='leaderboards'>
-		Leaderboards coming soon!
+		Leaderboards coming soon...
 	</div>
 );
 

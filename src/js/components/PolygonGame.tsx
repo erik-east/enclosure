@@ -4,6 +4,7 @@ import * as React from 'react';
 import { LngLatLike, Popup, useMap } from 'react-map-gl';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { DEFAULT_GAME_CONFIGURATIONS } from '../constants/DEFAULT_GAME_CONFIGURATIONS';
 import { INITIAL_POSITION } from '../constants/INITIAL_POSITION';
 import { MULTI_POLYGON_EUROPEAN_COUNTRIES } from '../constants/MULTI_POLYGON_EUROPEAN_COUNTRIES';
 import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES';
@@ -16,9 +17,9 @@ import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// TODO: Add these two lines below in a config file
-const memorizeModeDisplayTime = 2500;
-const maximumScore = 100;
+const { MAXIMUM_SCORE, MEMORY_MODE_DISPLAY_TIME } = DEFAULT_GAME_CONFIGURATIONS;
+
+const memoryPolygonTimeouts = [];
 let gameContentPolygons = [];
 let tooltipTimeout;
 
@@ -173,7 +174,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			const drawAccuracy = 1 - ((drawnArea - intersectionArea) / drawnArea);
 			// Penalty multiplier for draw accuracy is less forgiving if you overshoot more than 5 percent of target area
 			const penaltyMultiplier = drawnArea > (targetArea * 1.25) ? drawAccuracy * 0.85 : drawAccuracy;
-			const finalScore = maximumScore * baseMultiplier * penaltyMultiplier;
+			const finalScore = MAXIMUM_SCORE * baseMultiplier * penaltyMultiplier;
 
 			setFinalScore(Number(finalScore.toFixed(0)));
 			incrementTotalFinalScore(Number(finalScore.toFixed(0)));
@@ -311,7 +312,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			for (let i = 0; i < memoryPolygonsLength; i++) {
 				const { data: polygonData, name: polygonName } = memoryPolygons[ i ];
 
-				setTimeout(() => {
+				memoryPolygonTimeouts.push(setTimeout(() => {
 					drawRef?.deleteAll();
 
 					polygonData.properties = { class_id: 1, polygon_name: polygonName };
@@ -338,9 +339,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 							setDidMemoryPolygonsDisplay(true);
 							setIsDisplayingMemoryPolygons(false);
-						}, memorizeModeDisplayTime);
+						}, MEMORY_MODE_DISPLAY_TIME);
 					}
-				}, i * memorizeModeDisplayTime);
+				}, i * MEMORY_MODE_DISPLAY_TIME));
 			}
 		}
 	};
@@ -476,6 +477,22 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		});
 	};
 
+	const renderButtons = (): JSX.Element => {
+		if (isDrawing || isDisplayingMemoryPolygons) {
+			return null;
+		}
+
+		return (
+			<div className='buttons'>
+				{ renderDisplayMemoryPolygonsButton() }
+				{ renderDrawStartButton() }
+				{ renderNextTargetButton() }
+				{ renderShowResultsButton() }
+				{ renderRestartGameButton() }
+			</div>
+		);
+	};
+
 	const renderDrawStartButton = (): JSX.Element => {
 		if ((memorizeMode && !didMemoryPolygonsDisplay) || isDrawing || userPolygon) {
 			return null;
@@ -502,7 +519,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	const renderRestartGameButton = (): JSX.Element => {
 		if (showResults) {
-			return <button className='restart' onClick={ () => restartGame() }>Restart Game</button>;
+			return <button className='restart' onClick={ () => restartGame() }>Restart</button>;
 		}
 
 		return null;
@@ -510,42 +527,66 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	const renderShowResultsButton = (): JSX.Element => {
 		if (didGameEnd && !showResults) {
-			return <button className='show-results' onClick={ () => setShowResults(true) }>Show Results</button>;
+			return <button className='show-results' onClick={ () => setShowResults(true) }>Results</button>;
 		}
 
 		return null;
 	};
 
-	const renderMenu = () => {
+	const renderInteractiveMenu = (): JSX.Element => {
 		if (showResults) {
 			return (
-				<div className='menu'>
-					<div className='title'>Final Score</div>
-					<div className='total-score'>{ totalFinalScore } / { maximumScore * Number(totalTargetCount) } </div>
+				<div className='interactive-menu'>
+					<div className='title'>Play Again?</div>
+					{ renderButtons() }
 				</div>
 			);
 		}
 
 		if (memorizeMode && !didMemoryPolygonsDisplay && !isDisplayingMemoryPolygons) {
 			return (
-				<div className='menu'>
+				<div className='interactive-menu'>
 					<div className='current-target'>
 						<span>Ready?</span>
 					</div>
+
+					{ renderButtons() }
 				</div>
 			);
 		}
 
 		return (
-			<div className='menu'>
+			<div className='interactive-menu'>
 				<div className='current-target'>
 					<span>{ targetName }</span>
 					<span className='count'>{ targetCount } / { totalTargetCount }</span>
 				</div>
 
-				{ finalScore >= 0 && <div className='final-score'><span>Score:</span> { finalScore } / { maximumScore }</div> }
+				{ renderButtons() }
 			</div>
 		);
+	};
+
+	const renderScoreMenu = (): JSX.Element => {
+		if (showResults) {
+			return (
+				<div className='score-menu'>
+					<div className='title'>Final Score</div>
+					<div className='score'>{ totalFinalScore } / { MAXIMUM_SCORE * Number(totalTargetCount) } </div>
+				</div>
+			);
+		}
+
+		if (finalScore >= 0) {
+			return (
+				<div className='score-menu'>
+					<div className='title'>Score ({ targetName })</div>
+					<div className='score'>{ finalScore } / { MAXIMUM_SCORE }</div>
+				</div>
+			);
+		}
+
+		return null;
 	};
 
 	const renderPolygonTooltip = () => {
@@ -604,6 +645,10 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			// Sets up the first target
 			prepareNewTarget();
 		}
+
+		return () => {
+			memoryPolygonTimeouts.forEach((timeout) => clearTimeout(timeout));
+		};
 	}, [ ]);
 
 	React.useEffect(() => {
@@ -675,16 +720,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 				onDelete={ onDrawDelete }
 				onUpdate={ onDrawUpdate } />
 
-			{ renderMenu() }
-
-			<div className='buttons'>
-				{ renderDisplayMemoryPolygonsButton() }
-				{ renderDrawStartButton() }
-				{ renderNextTargetButton() }
-				{ renderShowResultsButton() }
-				{ renderRestartGameButton() }
-			</div>
-
+			{ renderInteractiveMenu() }
+			{ renderScoreMenu() }
 			{ renderPolygonTooltip() }
 		</div>
 	);
