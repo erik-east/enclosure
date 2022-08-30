@@ -1,5 +1,6 @@
 {
 	"scripts": {
+		"build:src": "rm -rf ./dist && webpack --config webpack.js",
 		"development": "webpack server --config webpack.js",
 		"lint": "eslint --cache --fix --ext .ts,.tsx ./src"
 	},
