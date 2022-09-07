@@ -19,32 +19,31 @@ const Enclosure: React.FC = (): JSX.Element => {
 			<div className="container">
 				<MapProvider>
 					<Routes>
-						<Route path='game/*' element={ <MapComponent /> }>
+						<Route path='*' element={ <MapComponent /> }>
 							<Route index element={ <GameSelection /> } />
 
 							<Route path='classic'>
 								<Route index element={ <ClassicModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/classic' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/classic' } /> } />
 							</Route>
 
 							<Route path='clue'>
 								<Route index element={ <ClueModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame clueMode /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/clue' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/clue' } /> } />
 							</Route>
 
 							<Route path='memorize'>
 								<Route index element={ <MemorizeModeGameSelection /> } />
 								<Route path=':content/:id' element={ <PolygonGame memorizeMode /> } />
-								<Route path="*" element={ <Navigate replace to={ '/game/memorize' } /> } />
+								<Route path="*" element={ <Navigate replace to={ '/memorize' } /> } />
 							</Route>
 
-							<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
+							<Route path="*" element={ <Navigate replace to={ '/' } /> } />
 						</Route>
 
 						<Route path='leaderboards' element={ <Leaderboards /> } />
-						<Route path="*" element={ <Navigate replace to={ '/game' } /> } />
 					</Routes>
 				</MapProvider>
 			</div>

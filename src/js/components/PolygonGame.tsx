@@ -619,14 +619,16 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	React.useEffect(() => {
 		if (!content || (content !== 'us-states' && content !== 'europe' && content !== 'south-america')) {
-			navigate('game');
+			navigate('/');
+
+			return;
 		}
 
 		if ((!totalTargetCount || Number(totalTargetCount) < 1
 		|| (content === 'us-states' && Number(totalTargetCount) > 50)
 		|| (content === 'europe' && Number(totalTargetCount) > 38)
 		|| (content === 'south-america' && Number(totalTargetCount) > 13))) {
-			navigate(`/game/${gameMode}`, { replace: true });
+			navigate(`/${gameMode}`, { replace: true });
 
 			return;
 		}

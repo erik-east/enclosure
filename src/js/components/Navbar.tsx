@@ -6,10 +6,10 @@ const Navbar: React.FC = () => {
 
 	return (
 		<nav className='navbar'>
-			<div className='logo' onClick={ () => navigate('/game') }>Enclosure</div>
+			<div className='logo' onClick={ () => navigate('/') }>Enclosure</div>
 
 			<div className='links'>
-				<NavLink to='/game' className=''>Game</NavLink>
+				<NavLink to='/' className=''>Games</NavLink>
 				<NavLink to='/leaderboards' className=''>Leaderboards</NavLink>
 			</div>
 		</nav>
