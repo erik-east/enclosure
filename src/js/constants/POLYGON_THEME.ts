@@ -7,7 +7,7 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#0BDE00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#FF0000',
-				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
+				[ '==', [ 'get', 'user_class_id' ], 3 ], '#EDD308',
 				[ '==', [ 'get', 'user_class_id' ], 'clue' ], '#949494',
 				'#3bb2d0'
 			],
@@ -15,7 +15,7 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], 0.75,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 0.75,
-				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.6,
+				[ '==', [ 'get', 'user_class_id' ], 3 ], 0.5,
 				[ '==', [ 'get', 'user_class_id' ], 'clue' ], 0.9,
 				0.1
 			],
@@ -58,13 +58,13 @@ export const POLYGON_THEME = [
 				'case',
 				[ '==', [ 'get', 'user_class_id' ], 1 ], '#045D00',
 				[ '==', [ 'get', 'user_class_id' ], 2 ], '#B60000',
-				[ '==', [ 'get', 'user_class_id' ], 3 ], '#005066',
+				[ '==', [ 'get', 'user_class_id' ], 3 ], '#EDD308',
 				[ '==', [ 'get', 'user_class_id' ], 'clue' ], '#949494',
 				'#3bb2d0'
 			],
 			'line-width': [
 				'case',
-				[ '==', [ 'get', 'user_class_id' ], 1 ], 1,
+				[ '==', [ 'get', 'user_class_id' ], 1 ], 2,
 				[ '==', [ 'get', 'user_class_id' ], 2 ], 2,
 				[ '==', [ 'get', 'user_class_id' ], 3 ], 1,
 				[ '==', [ 'get', 'user_class_id' ], 'clue' ], 1,
