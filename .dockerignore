@@ -1,0 +1,12 @@
+# Node
+/node_modules/
+
+# Logs
+*.log
+yarn-debug.log*
+yarn-error.log*
+
+# Common
+README.md
+Dockerfile
+.github/
