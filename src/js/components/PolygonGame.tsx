@@ -115,8 +115,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	const [ cluePolygons, setCluePolygons ] = React.useState([]);
 	const [ pastPolygons, setPastPolygons ] = React.useState([]);
 	const [ memoryPolygons, setMemoryPolygons ] = React.useState([]);
-	const [ isDisplayingMemoryPolygons, setIsDisplayingMemoryPolygons ] = React.useState(false); // Add state machine to keep track of status instead
-	const [ didMemoryPolygonsDisplay, setDidMemoryPolygonsDisplay ] = React.useState(false);
+	const [ memoryPolygonsDisplayState, setMemoryPolygonsDisplayState ] = React.useState(100); // 100: Initial State, 200: Displaying Cues, 300: Done Displaying Cues
 	const [ showTooltip, setShowTooltip ] = React.useState(false);
 	const [ polygonTooltip, setPolygonTooltip ] = React.useState({
 		coordinates: [],
@@ -307,7 +306,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		if (memoryPolygons && Object.keys(memoryPolygons).length > 0) {
 			const memoryPolygonsLength = Object.keys(memoryPolygons).length;
 
-			setIsDisplayingMemoryPolygons(true);
+			setMemoryPolygonsDisplayState(200);
 
 			for (let i = 0; i < memoryPolygonsLength; i++) {
 				const { data: polygonData, name: polygonName } = memoryPolygons[ i ];
@@ -337,8 +336,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 							setTargetName(polygonName);
 							setTargetPolygon(polygonData);
 
-							setDidMemoryPolygonsDisplay(true);
-							setIsDisplayingMemoryPolygons(false);
+							setMemoryPolygonsDisplayState(300);
 						}, MEMORY_MODE_DISPLAY_TIME);
 					}
 				}, i * MEMORY_MODE_DISPLAY_TIME));
@@ -390,7 +388,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	const restartGame = () => {
 		if (memorizeMode) {
-			setDidMemoryPolygonsDisplay(false);
+			setMemoryPolygonsDisplayState(100);
 		}
 
 		setPastPolygons(() => []);
@@ -478,7 +476,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	};
 
 	const renderButtons = (): JSX.Element => {
-		if (isDrawing || isDisplayingMemoryPolygons) {
+		if (isDrawing || memoryPolygonsDisplayState === 200) {
 			return null;
 		}
 
@@ -494,7 +492,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	};
 
 	const renderDrawStartButton = (): JSX.Element => {
-		if ((memorizeMode && !didMemoryPolygonsDisplay) || isDrawing || userPolygon) {
+		if ((memorizeMode && memoryPolygonsDisplayState !== 300) || isDrawing || userPolygon) {
 			return null;
 		}
 
@@ -502,7 +500,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	};
 
 	const renderDisplayMemoryPolygonsButton = (): JSX.Element => {
-		if (memorizeMode && !didMemoryPolygonsDisplay && !isDisplayingMemoryPolygons) {
+		if (memorizeMode && memoryPolygonsDisplayState === 100) {
 			return <button className='start' onClick={ onDisplayMemoryPolygons }>Start</button>;
 		}
 
@@ -543,7 +541,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			);
 		}
 
-		if (memorizeMode && !didMemoryPolygonsDisplay && !isDisplayingMemoryPolygons) {
+		if (memorizeMode && memoryPolygonsDisplayState === 100) {
 			return (
 				<div className='interactive-menu'>
 					<div className='current-target'>
@@ -677,7 +675,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	}, [ userPolygon ]);
 
 	React.useEffect(() => {
-		if (memorizeMode && !didMemoryPolygonsDisplay) {
+		if (memorizeMode && memoryPolygonsDisplayState !== 300) {
 			return;
 		}
 
