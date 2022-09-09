@@ -10,6 +10,74 @@ export function debounce<T extends (...params: Array<any>) => void>(context: T, 
 	};
 }
 
+// Return the number of clues to display for each game type/content
+export function determineClueCount(content: string, gameId: string): number {
+	if (content === 'europe') {
+		switch (gameId) {
+			case 'easy':
+				return 7;
+			case 'medium':
+				return 4;
+			case 'hard':
+				return 2;
+			default:
+				return 4;
+		}
+	}
+
+	if (content === 'south-america') {
+		switch (gameId) {
+			case 'easy':
+				return 3;
+			case 'medium':
+				return 2;
+			case 'hard':
+				return 1;
+			default:
+				return 2;
+		}
+	}
+
+	switch (gameId) {
+		case 'easy':
+			return 8;
+		case 'medium':
+			return 5;
+		case 'hard':
+			return 3;
+		default:
+			return 5;
+	}
+}
+
+// Return the total target count depending on the content, difficulty and game mode
+export function determineTotalTargetCount(content: string, gameId: string, gameMode: string): number {
+	if (gameMode === 'classic' || gameMode === 'memorize') {
+		return turf.isNumber(Number(gameId)) ? Number(gameId) : 0;
+	}
+
+	if ((gameMode === 'clue' && (gameId === 'easy' || gameId === 'medium' || gameId === 'hard'))) {
+		if (content === 'us-states') {
+			return 50;
+		}
+
+		if (content === 'europe') {
+			return 38;
+		}
+
+		if (content === 'south-america') {
+			return 13;
+		}
+	}
+
+	return 0;
+}
+
+// Returns area of a polygon in square miles
+export function getPolygonArea(polygon: turf.helpers.Polygon | turf.helpers.MultiPolygon): number {
+	return turf.convertArea(turf.area(polygon), 'meters', 'miles');
+}
+
 export function initializePolygons(singlePolygons: unknown, multiPolygons: unknown): Array<any> {
 	const polygons = [];
 

@@ -11,7 +11,13 @@ import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYG
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
-import { initializePolygons, randomUniqueIndices } from '../lib/util';
+import {
+	determineClueCount,
+	determineTotalTargetCount,
+	getPolygonArea,
+	initializePolygons,
+	randomUniqueIndices
+} from '../lib/util';
 
 import DrawingTools, { drawRef }  from './DrawingTools';
 
@@ -22,84 +28,6 @@ const { MAXIMUM_SCORE, MEMORY_MODE_DISPLAY_TIME } = DEFAULT_GAME_CONFIGURATIONS;
 const memoryPolygonTimeouts = [];
 let gameContentPolygons = [];
 let tooltipTimeout;
-
-// TODO: Move to lib
-const determineClueCount = (content: string, gameId: string) => {
-	if (content === 'europe') {
-		switch (gameId) {
-			case 'easy':
-				return 7;
-			case 'medium':
-				return 4;
-			case 'hard':
-				return 2;
-			default:
-				return 4;
-		}
-	}
-
-	if (content === 'south-america') {
-		switch (gameId) {
-			case 'easy':
-				return 3;
-			case 'medium':
-				return 2;
-			case 'hard':
-				return 1;
-			default:
-				return 2;
-		}
-	}
-
-	switch (gameId) {
-		case 'easy':
-			return 8;
-		case 'medium':
-			return 5;
-		case 'hard':
-			return 3;
-		default:
-			return 5;
-	}
-};
-
-const determineGameContentPolygons = (content: string) => {
-	let gameContentPolygons = [];
-
-	if (content === 'us-states') {
-		gameContentPolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
-	}
-	else if (content === 'europe') {
-		gameContentPolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
-	}
-	else if (content === 'south-america') {
-		gameContentPolygons = initializePolygons(SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES, MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES);
-	}
-
-	return gameContentPolygons;
-};
-
-const determineTotalTargetCount = (content: string, gameId: string, gameMode: string) => {
-	if (gameMode === 'classic' || gameMode === 'memorize') {
-		return turf.isNumber(Number(gameId)) ? Number(gameId) : 0;
-	}
-
-	if ((gameMode === 'clue' && (gameId === 'easy' || gameId === 'medium' || gameId === 'hard'))) {
-		if (content === 'us-states') {
-			return 50;
-		}
-
-		if (content === 'europe') {
-			return 38;
-		}
-
-		if (content === 'south-america') {
-			return 13;
-		}
-	}
-
-	return 0;
-};
 
 const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({ clueMode = false, memorizeMode = false }): JSX.Element => {
 	const [ finalScore, setFinalScore ] = React.useState(-1);
@@ -140,6 +68,22 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		setPastPolygons((array) => [ ...array, pastPolygon ]);
 	};
 
+	const determineGameContentPolygons = (content: string) => {
+		let gameContentPolygons = [];
+
+		if (content === 'us-states') {
+			gameContentPolygons = initializePolygons(SINGLE_POLYGON_STATES, MULTI_POLYGON_STATES);
+		}
+		else if (content === 'europe') {
+			gameContentPolygons = initializePolygons([], MULTI_POLYGON_EUROPEAN_COUNTRIES);
+		}
+		else if (content === 'south-america') {
+			gameContentPolygons = initializePolygons(SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES, MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES);
+		}
+
+		return gameContentPolygons;
+	};
+
 	const determineResults = () => {
 		const intersection: any = userPolygon && turf.intersect(userPolygon, targetPolygon);
 		const pastPolygon: { difference: any; intersection: any; name: string; polygon: any } = { difference: null, intersection, name: targetName, polygon: targetPolygon };
@@ -165,10 +109,9 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			intersection.properties = { class_id: 1 };
 			drawRef?.add(intersection);
 
-			// TODO: Move to lib
-			const intersectionArea = turf.convertArea(turf.area(intersection), 'meters', 'miles');
-			const targetArea = turf.convertArea(turf.area(targetPolygon), 'meters', 'miles');
-			const drawnArea = turf.convertArea(turf.area(userPolygon), 'meters', 'miles');
+			const intersectionArea = getPolygonArea(intersection);
+			const targetArea = getPolygonArea(targetPolygon);
+			const drawnArea = getPolygonArea(userPolygon);
 			const baseMultiplier = intersectionArea / targetArea;
 			const drawAccuracy = 1 - ((drawnArea - intersectionArea) / drawnArea);
 			// Penalty multiplier for draw accuracy is less forgiving if you overshoot more than 5 percent of target area

@@ -56,10 +56,10 @@ export const POLYGON_THEME = [
 		paint: {
 			'line-color': [
 				'case',
-				[ '==', [ 'get', 'user_class_id' ], 1 ], '#045D00',
-				[ '==', [ 'get', 'user_class_id' ], 2 ], '#B60000',
+				[ '==', [ 'get', 'user_class_id' ], 1 ], '#007A00',
+				[ '==', [ 'get', 'user_class_id' ], 2 ], '#800000',
 				[ '==', [ 'get', 'user_class_id' ], 3 ], '#EDD308',
-				[ '==', [ 'get', 'user_class_id' ], 'clue' ], '#949494',
+				[ '==', [ 'get', 'user_class_id' ], 'clue' ], '#555555',
 				'#3bb2d0'
 			],
 			'line-width': [
