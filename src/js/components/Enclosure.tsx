@@ -6,6 +6,7 @@ import ClassicModeGameSelection from './ClassicModeGameSelection';
 import ClueModeGameSelection from './ClueModeGameSelection';
 import GameSelection from './GameSelection';
 import Leaderboards from './Leaderboards';
+import Login from './Login';
 import MapComponent from './MapComponent';
 import MemorizeModeGameSelection from './MemorizeModeGameSelection';
 import Navbar from './Navbar';
@@ -44,6 +45,8 @@ const Enclosure: React.FC = (): JSX.Element => {
 						</Route>
 
 						<Route path='leaderboards' element={ <Leaderboards /> } />
+
+						<Route path='login' element={ <Login /> } />
 					</Routes>
 				</MapProvider>
 			</div>

@@ -17,7 +17,7 @@ module.exports = () => {
 		},
 		devServer: {
 			historyApiFallback: true,
-			host: '0.0.0.0',
+			host: 'enclosure.local-dev',
 			port: 9000
 		},
 
@@ -65,6 +65,12 @@ module.exports = () => {
 						},
 					},
 					exclude: /node_modules/
+				},
+				{
+					test: /\.m?js/,
+					resolve: {
+						fullySpecified: false
+					}
 				}
 			]
 		},

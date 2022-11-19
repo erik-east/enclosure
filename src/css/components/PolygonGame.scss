@@ -21,7 +21,7 @@
 			border: none;
 			color: #E4EFF0;
 			cursor: pointer;
-			font-size: 24px;
+			font-size: 25px;
 			font-weight: bold;
 			padding: 6px 10px;
 
@@ -88,6 +88,7 @@
 	.selection {
 		@include sci-fi-box(#005066DD, 24px, 60px);
 
+		font-size: 25px;
 		grid-column-start: col2-start;
 		grid-column-end: col5-start;
 		grid-row-start: row2-start;
@@ -114,12 +115,12 @@
 			> a {
 				display: block;
 				margin-left: 0px;
-				padding-top: 22px;
+				padding-top: 20px;
 			}
 		}
 
 		.title {
-			font-size: 26px;
+			font-size: 28px;
 			font-weight: bold;
 			margin-bottom: 10px;
 			text-align: center;
@@ -127,7 +128,7 @@
 
 		.europe {
 			> span {
-				margin-right: 85px;
+				margin-right: 88px;
 			}
 		}
 
@@ -141,7 +142,7 @@
 			padding-top: 20px;
 
 			> span {
-				margin-right: 53px;
+				margin-right: 56px;
 			}
 		}
 	}

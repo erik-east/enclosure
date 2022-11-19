@@ -31,6 +31,15 @@
                 color: #78CCE2;
             }
         }
+
+        .sign-in {
+            cursor: pointer;
+            text-decoration: none !important;
+
+            &:hover {
+                color: #00B200 !important;
+            }
+        }
     }
 
     .logo {
