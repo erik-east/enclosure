@@ -30,6 +30,16 @@
             &:not(.active):hover {
                 color: #78CCE2;
             }
+
+            &.user {
+                color: #00b2009d;
+
+                &:hover {
+                    color: #00B200;
+                    cursor: default;
+                    text-decoration: none;
+                }
+            }
         }
 
         .sign-in {

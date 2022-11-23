@@ -1,11 +1,12 @@
 import Cookies from 'js-cookie';
+import jwt_decode from 'jwt-decode';
 
 export function getAuthCookie(): any {
 	if (Cookies.get('access_token') === undefined) {
 		return undefined;
 	}
 
-	return Cookies.get('access_token');
+	return jwt_decode(Cookies.get('access_token'));
 }
 
 export function isAuthenticated(): boolean {

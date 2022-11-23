@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
-import { isAuthenticated } from '../lib/global';
+import { getAuthCookie, isAuthenticated } from '../lib/global';
 
 import SignInModal from './SignInModal';
 
@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
 					<NavLink to='/' className=''>Games</NavLink>
 					<NavLink to='/leaderboards' className=''>Leaderboards</NavLink>
 					{
-						isUserAuthenticated ?  <a>Logged in</a> : <a className='sign-in' onClick={ () => setSignInModalVisibility(true) }>Sign in</a>
+						isUserAuthenticated ?  <a className='user'>{ getAuthCookie().sub }</a> : <a className='sign-in' onClick={ () => setSignInModalVisibility(true) }>Sign in</a>
 					}
 				</div>
 			</nav>
