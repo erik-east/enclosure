@@ -1,7 +1,9 @@
 /* eslint-disable no-console */
+import { bindActionCreators } from '@reduxjs/toolkit';
 import * as turf from '@turf/turf';
 import * as React from 'react';
 import { LngLatLike, Popup, useMap } from 'react-map-gl';
+import { useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { DEFAULT_GAME_CONFIGURATIONS } from '../constants/DEFAULT_GAME_CONFIGURATIONS';
@@ -11,6 +13,7 @@ import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYG
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
+// import { useReduxState } from '../lib/redux';
 import {
 	determineClueCount,
 	determineTotalTargetCount,
@@ -18,6 +21,7 @@ import {
 	initializePolygons,
 	randomUniqueIndices
 } from '../lib/util';
+import { requestSetUserScore } from '../redux';
 
 import DrawingTools, { drawRef }  from './DrawingTools';
 
@@ -30,6 +34,10 @@ let gameContentPolygons = [];
 let tooltipTimeout;
 
 const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({ clueMode = false, memorizeMode = false }): JSX.Element => {
+	// HOOKS
+	const dispatch = useDispatch();
+	const requestSetUserScoreDispatch = bindActionCreators(requestSetUserScore, dispatch);
+	// LOCAL STATE
 	const [ finalScore, setFinalScore ] = React.useState(-1);
 	const [ totalFinalScore, setTotalFinalScore ] = React.useState(0);
 	const [ didGameEnd, setDidGameEnd ] = React.useState(false);
@@ -510,6 +518,8 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	const renderScoreMenu = (): JSX.Element => {
 		if (showResults) {
+			// TODO: Show your high score here if user is authenticated if not show login button
+			// Use userHighScore redux state
 			return (
 				<div className='score-menu'>
 					<div className='title'>Final Score</div>
@@ -558,6 +568,20 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		return null;
 	};
 
+	// TODO: Move this to lib
+	const determineGameModifierByGameId = (gameId: string) => {
+		switch (gameId) {
+			case 'easy':
+				return 100;
+			case 'medium':
+				return 200;
+			case 'hard':
+				return 300;
+			default:
+				return Number(gameId);
+		}
+	};
+
 	React.useEffect(() => {
 		if (!content || (content !== 'us-states' && content !== 'europe' && content !== 'south-america')) {
 			navigate('/');
@@ -598,6 +622,13 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		// TODO: Change this when user can add multiple polygons
 		if (userPolygon && targetCount === Number(totalTargetCount)) {
 			setDidGameEnd(true);
+			// TODO: Add a check to not send this if user is not authenticated
+			requestSetUserScoreDispatch(
+				totalFinalScore,
+				determineGameModifierByGameId(gameId),
+				gameMode,
+				content
+			);
 		}
 	}, [ finalScore ]);
 

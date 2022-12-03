@@ -15,7 +15,7 @@ export interface IScoresActionPayload {
 	gameModifier?: number;
 	highScores?: Array<IHighScore>;
 	score?: number;
-	userHighScore?: any;
+	userHighScore?: number;
 }
 
 export interface IScoresState {
@@ -23,5 +23,5 @@ export interface IScoresState {
 	requestingHighScores: boolean;
 	requestingSetUserScore: boolean;
 	requestingUserHighScore: boolean;
-	userHighScore: any;
+	userHighScore: number;
 }

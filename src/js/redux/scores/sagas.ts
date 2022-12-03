@@ -55,7 +55,7 @@ export function* requestSetUserScore(action: PayloadAction<IScoresActionPayload>
 				yield put(failedReceiveSetUserScore());
 			}
 			else {
-				yield put(receiveSetUserScore());
+				yield put(receiveSetUserScore(response.data));
 			}
 		}
 		else {

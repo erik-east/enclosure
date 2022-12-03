@@ -21,7 +21,7 @@ const Login: React.FC = (): JSX.Element => {
 				placeholder='Enter Score'
 				spellCheck={ false }
 				value={ score } />
-			<button disabled={ score <= 0 } onClick={ () => requestSetUserScoreDispatch(score, 5, 'classic', 'us-states') }>Send Score</button>
+			<button disabled={ score <= 0 } onClick={ () => requestSetUserScoreDispatch(score, 5, 'classic', 'south-america') }>Send Score</button>
 		</div>
 	);
 };

@@ -36,8 +36,16 @@ const scoresSlice = createSlice({
 				state.highScores = highScores;
 			}
 		},
-		receiveSetUserScore: (state: IScoresState) => {
-			state.requestingSetUserScore = false;
+		receiveSetUserScore: {
+			prepare: (userHighScore: any) => {
+				return { payload: { userHighScore } };
+			},
+			reducer: (state: IScoresState, action: PayloadAction<IScoresActionPayload>) => {
+				const { userHighScore } = action.payload;
+
+				state.requestingSetUserScore = false;
+				state.userHighScore = userHighScore;
+			}
 		},
 		receiveUserHighScore: {
 			prepare: (userHighScore: any) => {
