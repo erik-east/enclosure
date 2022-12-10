@@ -13,7 +13,8 @@ import { MULTI_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/MULTI_POLYG
 import { MULTI_POLYGON_STATES } from '../constants/MULTI_POLYGON_STATES';
 import { SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES } from '../constants/SINGLE_POLYGON_SOUTH_AMERICAN_COUNTRIES';
 import { SINGLE_POLYGON_STATES } from '../constants/SINGLE_POLYGON_STATES';
-// import { useReduxState } from '../lib/redux';
+import { isAuthenticated as authenticated } from '../lib/global';
+import { useReduxState } from '../lib/redux';
 import {
 	determineClueCount,
 	determineTotalTargetCount,
@@ -26,6 +27,7 @@ import { requestSetUserScore } from '../redux';
 import DrawingTools, { drawRef }  from './DrawingTools';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { IScoresState } from 'js/types';
 
 const { MAXIMUM_SCORE, MEMORY_MODE_DISPLAY_TIME } = DEFAULT_GAME_CONFIGURATIONS;
 
@@ -33,10 +35,12 @@ const memoryPolygonTimeouts = [];
 let gameContentPolygons = [];
 let tooltipTimeout;
 
-const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({ clueMode = false, memorizeMode = false }): JSX.Element => {
+const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean; setSignInModalVisibility: React.Dispatch<React.SetStateAction<boolean>> }> = ({ clueMode = false, memorizeMode = false, setSignInModalVisibility }): JSX.Element => {
 	// HOOKS
 	const dispatch = useDispatch();
 	const requestSetUserScoreDispatch = bindActionCreators(requestSetUserScore, dispatch);
+	// REDUX STATE
+	const { userHighScore } = useReduxState<IScoresState>('scores');
 	// LOCAL STATE
 	const [ finalScore, setFinalScore ] = React.useState(-1);
 	const [ totalFinalScore, setTotalFinalScore ] = React.useState(0);
@@ -66,6 +70,7 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 	const defaultClueCount = determineClueCount(content, gameId);
 	// Need this to be able to use the target count inside setTimeout
 	const targetCountRef = React.useRef(targetCount);
+	const isAuthenticated = authenticated();
 
 	targetCountRef.current = targetCount;
 
@@ -518,12 +523,25 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 
 	const renderScoreMenu = (): JSX.Element => {
 		if (showResults) {
-			// TODO: Show your high score here if user is authenticated if not show login button
-			// Use userHighScore redux state
+			if (isAuthenticated) {
+				return (
+					<div className='score-menu'>
+						<div className='title'>Final Score</div>
+						<div className='score'>{ totalFinalScore } / { MAXIMUM_SCORE * Number(totalTargetCount) } </div>
+
+						<div className='sub-title'>Personal Record</div>
+						<div className='score'>{ userHighScore } / { MAXIMUM_SCORE * Number(totalTargetCount) }</div>
+					</div>
+				);
+			}
+
 			return (
 				<div className='score-menu'>
 					<div className='title'>Final Score</div>
 					<div className='score'>{ totalFinalScore } / { MAXIMUM_SCORE * Number(totalTargetCount) } </div>
+
+					<div className='sub-title'>To submit your score</div>
+					<div className='buttons'><button className='login' onClick={ () => setSignInModalVisibility(true) }>Sign in</button></div>
 				</div>
 			);
 		}
@@ -622,13 +640,18 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 		// TODO: Change this when user can add multiple polygons
 		if (userPolygon && targetCount === Number(totalTargetCount)) {
 			setDidGameEnd(true);
-			// TODO: Add a check to not send this if user is not authenticated
-			requestSetUserScoreDispatch(
-				totalFinalScore,
-				determineGameModifierByGameId(gameId),
-				gameMode,
-				content
-			);
+
+			// Check if the user is authenticated before sending out the score
+			if (isAuthenticated) {
+				const gameModifier = determineGameModifierByGameId(gameId);
+
+				requestSetUserScoreDispatch(
+					totalFinalScore,
+					gameModifier,
+					gameMode,
+					content
+				);
+			}
 		}
 	}, [ finalScore ]);
 
@@ -686,6 +709,19 @@ const PolygonGame: React.FC<{ clueMode?: boolean; memorizeMode?: boolean }> = ({
 			displayPastPolygons();
 		}
 	}, [ showResults ]);
+
+	React.useEffect(() => {
+		const gameModifier = determineGameModifierByGameId(gameId);
+
+		if (userPolygon && targetCount === Number(totalTargetCount)) {
+			requestSetUserScoreDispatch(
+				totalFinalScore,
+				gameModifier,
+				gameMode,
+				content
+			);
+		}
+	}, [ isAuthenticated ]);
 
 	return (
 		<div className='polygon-game'>

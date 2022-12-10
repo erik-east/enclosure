@@ -5,9 +5,8 @@ import { getAuthCookie, isAuthenticated } from '../lib/global';
 
 import SignInModal from './SignInModal';
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<any> = ({ signInModalVisibility, setSignInModalVisibility }): any => {
 	const navigate = useNavigate();
-	const [ signInModalVisibility, setSignInModalVisibility ] = React.useState<boolean>(false);
 	const isUserAuthenticated = isAuthenticated();
 
 	return (

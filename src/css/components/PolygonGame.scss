@@ -12,6 +12,7 @@
 		grid-row-start: row1-start;
 		grid-row-end: row2-start;
 
+		.login,
 		.next,
 		.restart,
 		.show-results,
@@ -28,6 +29,11 @@
 			&:hover {
 				background-color: #005560;
 			}
+		}
+
+		.login {
+			// TODO: Clean this up
+			margin: 0 67px;
 		}
 	}
 
@@ -52,6 +58,7 @@
 			}
 		}
 
+		.sub-title,
 		.title {
 			align-self: center;
 		}
@@ -82,6 +89,10 @@
 			> span {
 				font-size: 26px;
 			}
+		}
+
+		.sub-title {
+			padding: 25px 0px 20px;
 		}
 	}
 

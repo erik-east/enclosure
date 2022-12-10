@@ -1,3 +1,4 @@
+import dayjs, { unix } from 'dayjs';
 import Cookies from 'js-cookie';
 import jwt_decode from 'jwt-decode';
 
@@ -16,5 +17,12 @@ export function isAuthenticated(): boolean {
 		return false;
 	}
 
-	return true;
+	const date = dayjs().toDate();
+	const expires = unix(authCookie?.exp);
+
+	if (dayjs(date).isBefore(expires)) {
+		return true;
+	}
+
+	return false;
 }

@@ -48,7 +48,7 @@ export function* requestSetUserScore(action: PayloadAction<IScoresActionPayload>
 	try {
 		const { gameContentSlug, gameModeSlug, gameModifier, score } = action.payload;
 
-		if (score && gameModifier && gameModeSlug && gameContentSlug) {
+		if (gameModifier && gameModeSlug && gameContentSlug) {
 			const response = yield call(postUserScore, score, gameModifier, gameModeSlug, gameContentSlug);
 
 			if (!response || response.status !== 200) {

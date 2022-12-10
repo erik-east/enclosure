@@ -58,10 +58,12 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 			isCentered
 			isOpen={ isOpen }
 			onClose={ onModalClose }>
-			<ModalOverlay />
+			<ModalOverlay
+				bg='blackAlpha.300'
+				backdropFilter='blur(5px) hue-rotate(60deg)' />
 
 			<ModalContent>
-				<ModalHeader>
+				<ModalHeader borderTopRadius='6px' className='modal-header'>
 					Sign In
 				</ModalHeader>
 
@@ -77,7 +79,7 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 							value={ username } />
 					</FormControl>
 
-					<FormControl>
+					<FormControl className='password'>
 						<FormLabel>Password</FormLabel>
 						<InputGroup size='md'>
 							<Input
@@ -95,7 +97,7 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 					</FormControl>
 				</ModalBody>
 
-				<ModalFooter>
+				<ModalFooter borderBottomRadius='6px'>
 					<Button
 						colorScheme='blue'
 						mr={ 3 }

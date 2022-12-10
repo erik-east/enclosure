@@ -12,8 +12,29 @@ body {
 		font-weight: 600;
 	}
 
+	.chakra-modal__body,
+	.chakra-modal__footer,
+	.chakra-modal__header {
+		background-color: #EFF9FF;
+	}
+
 	.modal-body {
-		padding: 16px 48px 24px;
+		padding: 12px 48px 24px;
+
+		.chakra-form__label {
+			color: #78CCE2;
+			font-weight: bold;
+		}
+
+		.password {
+			margin-top: 10px;
+		}
+	}
+
+	.modal-header {
+		color: #005066;
+		font-size: 22px;
+		padding: 16px 46px;
 	}
 
 	.page-content {
