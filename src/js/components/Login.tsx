@@ -2,11 +2,12 @@ import { bindActionCreators } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { useDispatch } from 'react-redux';
 
-import { requestSetUserScore } from '../redux';
+import { requestSetUserScore, requestRemoveServerSideCookie } from '../redux';
 
 const Login: React.FC = (): JSX.Element => {
 	const dispatch = useDispatch();
 	const requestSetUserScoreDispatch = bindActionCreators(requestSetUserScore, dispatch);
+	const requestRemoveServerSideCookieDispatch = bindActionCreators(requestRemoveServerSideCookie, dispatch);
 	const [ score, setScore ] = React.useState(0);
 
 	const handleScoreChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -22,6 +23,7 @@ const Login: React.FC = (): JSX.Element => {
 				spellCheck={ false }
 				value={ score } />
 			<button disabled={ score <= 0 } onClick={ () => requestSetUserScoreDispatch(score, 5, 'classic', 'south-america') }>Send Score</button>
+			<button onClick={ () => requestRemoveServerSideCookieDispatch() }>Logout</button>
 		</div>
 	);
 };

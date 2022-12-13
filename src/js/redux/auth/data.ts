@@ -13,3 +13,7 @@ export function postLogin(username: string, password: string): AxiosPromise {
 		headers: { 'Content-Type': 'www-form-urlencoded' }
 	});
 }
+
+export function postLogout(): AxiosPromise {
+	return post('auth/logout', { data: {} });
+}

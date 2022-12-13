@@ -5,5 +5,6 @@ export interface IAuthActionPayload {
 }
 
 export interface IAuthState {
+	requestingRemoveServerSideCookie: boolean;
 	requestingSetServerSideCookie: boolean;
 }

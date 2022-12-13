@@ -271,7 +271,7 @@ rules:
   no-compare-neg-zero: error
   no-cond-assign: error
   no-confusing-arrow: "off"
-  no-console: error
+  no-console: "off" # Remove this before going to production
   no-const-assign: error
   no-constant-condition: error
   no-control-regex: error

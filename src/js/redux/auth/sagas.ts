@@ -7,8 +7,29 @@ import {
 
 import { IAuthActionPayload } from '../../types/IAuth';
 
-import { postLogin } from './data';
-import { failedReceiveSetServerSideCookie, receiveSetServerSideCookie } from './slice';
+import { postLogin, postLogout } from './data';
+import {
+	failedReceiveRemoveServerSideCookie,
+	failedReceiveSetServerSideCookie,
+	receiveRemoveServerSideCookie,
+	receiveSetServerSideCookie
+} from './slice';
+
+export function* requestRemoveServerSideCookie(): any {
+	try {
+		const response = yield call(postLogout);
+
+		if (!response || response.status !== 200) {
+			yield put(failedReceiveRemoveServerSideCookie());
+		}
+		else {
+			yield put(receiveRemoveServerSideCookie());
+		}
+	}
+	catch (e) {
+		yield put(failedReceiveRemoveServerSideCookie());
+	}
+}
 
 export function* requestSetServerSideCookie(action: PayloadAction<IAuthActionPayload>): any {
 	try {
@@ -31,6 +52,10 @@ export function* requestSetServerSideCookie(action: PayloadAction<IAuthActionPay
 	catch (e) {
 		yield put(failedReceiveSetServerSideCookie());
 	}
+}
+
+export function* watchRequestRemoveServerSideCookie(): any {
+	yield takeLatest('auth/requestRemoveServerSideCookie', requestRemoveServerSideCookie);
 }
 
 export function* watchRequestSetServerSideCookie(): any {

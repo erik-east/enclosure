@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from './hooks';
 import store, { IEnclosureState } from './store';
 
 export {
+	requestRemoveServerSideCookie,
 	requestSetServerSideCookie,
 	resetAuth
 } from './auth/slice';

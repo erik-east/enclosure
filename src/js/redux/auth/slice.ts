@@ -12,11 +12,20 @@ const authSlice = createSlice({
 	initialState: authState,
 	name: 'auth',
 	reducers: {
+		failedReceiveRemoveServerSideCookie: (state: IAuthState) => {
+			state.requestingRemoveServerSideCookie = false;
+		},
 		failedReceiveSetServerSideCookie: (state: IAuthState) => {
 			state.requestingSetServerSideCookie = false;
 		},
+		receiveRemoveServerSideCookie: (state: IAuthState) => {
+			state.requestingRemoveServerSideCookie = false;
+		},
 		receiveSetServerSideCookie: (state: IAuthState) => {
 			state.requestingSetServerSideCookie = false;
+		},
+		requestRemoveServerSideCookie: (state: IAuthState) => {
+			state.requestingRemoveServerSideCookie = true;
 		},
 		requestSetServerSideCookie: {
 			prepare: (username: string, password: string) => {
@@ -31,8 +40,11 @@ const authSlice = createSlice({
 });
 
 export const {
+	failedReceiveRemoveServerSideCookie,
 	failedReceiveSetServerSideCookie,
+	receiveRemoveServerSideCookie,
 	receiveSetServerSideCookie,
+	requestRemoveServerSideCookie,
 	requestSetServerSideCookie,
 	resetAuth
 } = authSlice.actions;

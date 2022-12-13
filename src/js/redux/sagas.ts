@@ -1,6 +1,7 @@
 import { all } from 'redux-saga/effects';
 
 import {
+	watchRequestRemoveServerSideCookie,
 	watchRequestSetServerSideCookie
 } from './auth/sagas';
 import {
@@ -12,6 +13,7 @@ import {
 export default function* sagas(): any {
 	yield all([
 		watchRequestHighScores(),
+		watchRequestRemoveServerSideCookie(),
 		watchRequestSetUserScore(),
 		watchRequestSetServerSideCookie(),
 		watchRequestUserHighScore()

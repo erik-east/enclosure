@@ -16,7 +16,8 @@
             display: flex;
             font-size: 18px;
             font-weight: bold;
-            padding-right: 28px;
+            // padding-right: 28px;
+            padding: 0px 12px;
             text-decoration: none;
 
             &:hover {
@@ -30,15 +31,16 @@
             &:not(.active):hover {
                 color: #78CCE2;
             }
+        }
 
-            &.user {
-                color: #00b2009d;
+        .profile-button {
+            background-color: #002439;
+            color: #00B200C2;
+            font-size: 18px;
+            margin: 9px 3px;
 
-                &:hover {
-                    color: #00B200;
-                    cursor: default;
-                    text-decoration: none;
-                }
+            &:hover {
+                color: #00B200;
             }
         }
 
