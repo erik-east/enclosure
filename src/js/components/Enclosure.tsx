@@ -11,15 +11,27 @@ import MapComponent from './MapComponent';
 import MemorizeModeGameSelection from './MemorizeModeGameSelection';
 import Navbar from './Navbar';
 import PolygonGame from './PolygonGame';
+import SignInModal from './SignInModal';
+import SignUpModal from './SignUpModal';
 
 const Enclosure: React.FC = (): JSX.Element => {
 	const [ signInModalVisibility, setSignInModalVisibility ] = React.useState<boolean>(false);
+	const [ signUpModalVisibility, setSignUpModalVisibility ] = React.useState<boolean>(false);
 
 	return (
 		<div id='enclosure-container'>
 			<Navbar
 				signInModalVisibility={ signInModalVisibility }
 				setSignInModalVisibility={ setSignInModalVisibility } />
+
+			<SignInModal
+				isOpen={ signInModalVisibility }
+				onClose={ () => setSignInModalVisibility(false) }
+				setSignUpModalVisibility={ setSignUpModalVisibility } />
+
+			<SignUpModal
+				isOpen={ signUpModalVisibility }
+				onClose={ () => setSignUpModalVisibility(false) } />
 
 			<div className="container">
 				<MapProvider>

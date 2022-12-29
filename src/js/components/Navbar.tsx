@@ -15,9 +15,7 @@ import { useReduxState } from '../lib/redux';
 import { requestRemoveServerSideCookie } from '../redux';
 import { IAuthState } from '../types';
 
-import SignInModal from './SignInModal';
-
-const Navbar: React.FC<any> = ({ signInModalVisibility, setSignInModalVisibility }): any => {
+const Navbar: React.FC<any> = ({ setSignInModalVisibility }): any => {
 	// HOOKS
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -47,23 +45,17 @@ const Navbar: React.FC<any> = ({ signInModalVisibility, setSignInModalVisibility
 	};
 
 	return (
-		<>
-			<nav className='navbar'>
-				<div className='logo' onClick={ () => navigate('/') }>Enclosure</div>
+		<nav className='navbar'>
+			<div className='logo' onClick={ () => navigate('/') }>Enclosure</div>
 
-				<div className='links'>
-					<NavLink to='/' className=''>Games</NavLink>
-					<NavLink to='/leaderboards' className=''>Leaderboards</NavLink>
-					{
-						isUserAuthenticated ?  renderMyProfile() : <a className='sign-in' onClick={ () => setSignInModalVisibility(true) }>Sign in</a>
-					}
-				</div>
-			</nav>
-
-			<SignInModal
-				isOpen={ signInModalVisibility }
-				onClose={ () => setSignInModalVisibility(false) } />
-		</>
+			<div className='links'>
+				<NavLink to='/' className=''>Games</NavLink>
+				<NavLink to='/leaderboards' className=''>Leaderboards</NavLink>
+				{
+					isUserAuthenticated ?  renderMyProfile() : <a className='sign-in' onClick={ () => setSignInModalVisibility(true) }>Sign in</a>
+				}
+			</div>
+		</nav>
 	);
 };
 

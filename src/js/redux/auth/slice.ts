@@ -12,17 +12,31 @@ const authSlice = createSlice({
 	initialState: authState,
 	name: 'auth',
 	reducers: {
+		failedReceiveCreateUser: (state: IAuthState) => {
+			state.requestingCreateUser = true;
+		},
 		failedReceiveRemoveServerSideCookie: (state: IAuthState) => {
 			state.requestingRemoveServerSideCookie = false;
 		},
 		failedReceiveSetServerSideCookie: (state: IAuthState) => {
 			state.requestingSetServerSideCookie = false;
 		},
+		receiveCreateUser: (state: IAuthState) => {
+			state.requestingCreateUser = false;
+		},
 		receiveRemoveServerSideCookie: (state: IAuthState) => {
 			state.requestingRemoveServerSideCookie = false;
 		},
 		receiveSetServerSideCookie: (state: IAuthState) => {
 			state.requestingSetServerSideCookie = false;
+		},
+		requestCreateUser: {
+			prepare: (username: string, email: string, password: string, firstName: string, lastName: string) => {
+				return { payload: { email, firstName, lastName, password, username } };
+			},
+			reducer: (state: IAuthState) => {
+				state.requestingCreateUser = true;
+			}
 		},
 		requestRemoveServerSideCookie: (state: IAuthState) => {
 			state.requestingRemoveServerSideCookie = true;
@@ -40,10 +54,13 @@ const authSlice = createSlice({
 });
 
 export const {
+	failedReceiveCreateUser,
 	failedReceiveRemoveServerSideCookie,
 	failedReceiveSetServerSideCookie,
+	receiveCreateUser,
 	receiveRemoveServerSideCookie,
 	receiveSetServerSideCookie,
+	requestCreateUser,
 	requestRemoveServerSideCookie,
 	requestSetServerSideCookie,
 	resetAuth

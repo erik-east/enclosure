@@ -7,13 +7,42 @@ import {
 
 import { IAuthActionPayload } from '../../types/IAuth';
 
-import { postLogin, postLogout } from './data';
 import {
+	postCreateUser,
+	postLogin,
+	postLogout
+} from './data';
+import {
+	failedReceiveCreateUser,
 	failedReceiveRemoveServerSideCookie,
 	failedReceiveSetServerSideCookie,
+	receiveCreateUser,
 	receiveRemoveServerSideCookie,
 	receiveSetServerSideCookie
 } from './slice';
+
+export function* requestCreateUser(action: PayloadAction<IAuthActionPayload>): any {
+	try {
+		const {
+			email,
+			firstName,
+			lastName,
+			password,
+			username
+		} = action.payload;
+		const response = yield call(postCreateUser, username, email, firstName, lastName, password);
+
+		if (!response || response.status !== 200) {
+			yield put(failedReceiveCreateUser());
+		}
+		else {
+			yield put(receiveCreateUser());
+		}
+	}
+	catch (e) {
+		yield put(failedReceiveCreateUser());
+	}
+}
 
 export function* requestRemoveServerSideCookie(): any {
 	try {
@@ -52,6 +81,10 @@ export function* requestSetServerSideCookie(action: PayloadAction<IAuthActionPay
 	catch (e) {
 		yield put(failedReceiveSetServerSideCookie());
 	}
+}
+
+export function* watchRequestCreateUser(): any {
+	yield takeLatest('auth/requestCreateUser', requestCreateUser);
 }
 
 export function* watchRequestRemoveServerSideCookie(): any {

@@ -25,10 +25,12 @@ import { IAuthState } from 'js/types';
 interface ISignInModal {
 	isOpen: boolean;
 	onClose: () => void;
+	setSignUpModalVisibility: (visibility: boolean) => void;
 }
 
-const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
+const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose, setSignUpModalVisibility }) => {
 	const dispatch = useDispatch();
+	const initialRef = React.useRef(null);
 	const { requestingSetServerSideCookie } = useReduxState<IAuthState>('auth');
 	const requestSetServerSideCookieDispatch = bindActionCreators(requestSetServerSideCookie, dispatch);
 	const [ username, setUsername ] = React.useState('');
@@ -36,14 +38,19 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 	const [ showPassword, setShowPassword ] = React.useState(false);
 	const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-	const resetModal = () => {
+	const resetModal = (): void => {
 		setUsername('');
 		setPassword('');
 	};
 
-	const onModalClose = () => {
+	const onModalClose = (): void => {
 		onClose();
 		resetModal();
+	};
+
+	const switchToSignUpModal = (): void => {
+		onClose();
+		setSignUpModalVisibility(true);
 	};
 
 	React.useEffect(() => {
@@ -55,6 +62,7 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 
 	return (
 		<Modal
+			initialFocusRef={ initialRef }
 			isCentered
 			isOpen={ isOpen }
 			onClose={ onModalClose }>
@@ -74,12 +82,13 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 						<FormLabel>Username</FormLabel>
 						<Input
 							onChange={ (event) => setUsername(event.target.value) }
-							type='text'
+							ref={ initialRef }
+							type='search'
 							placeholder='Enter username'
 							value={ username } />
 					</FormControl>
 
-					<FormControl className='password'>
+					<FormControl mt='10px'>
 						<FormLabel>Password</FormLabel>
 						<InputGroup size='md'>
 							<Input
@@ -88,6 +97,7 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 								pr='4.5rem'
 								placeholder='Enter password'
 								value={ password } />
+
 							<InputRightElement width='4.5rem'>
 								<Button h='1.75rem' size='sm' onClick={ togglePasswordVisibility }>
 									{ showPassword ? 'Hide' : 'Show' }
@@ -97,9 +107,17 @@ const SignInModal: React.FC<ISignInModal> = ({ isOpen, onClose }) => {
 					</FormControl>
 				</ModalBody>
 
-				<ModalFooter borderBottomRadius='6px'>
+				<ModalFooter borderBottomRadius='6px' display='flex' justifyContent='space-between'>
+					<Button
+						colorScheme='green'
+						mr={ 3 }
+						onClick={ switchToSignUpModal }>
+              			Sign up
+					</Button>
+
 					<Button
 						colorScheme='blue'
+						disabled={ username === '' || password === '' }
 						mr={ 3 }
 						onClick={ () => requestSetServerSideCookieDispatch(username, password) }>
               			Login
