@@ -40,7 +40,7 @@ const SignUpModal: React.FC<ISignUpModal> = ({ isOpen, onClose }) => {
 	const [ confirmPassword, setConfirmPassword ] = React.useState('');
 	const [ showPassword, setShowPassword ] = React.useState(false);
 	const togglePasswordVisibility = () => setShowPassword(!showPassword);
-
+	// LOCAL VARIABLES
 	const doesPasswordMatch = password === confirmPassword;
 	// eslint-disable-next-line
 	const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/;
